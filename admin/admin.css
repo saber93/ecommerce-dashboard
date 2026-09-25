@@ -140,6 +140,15 @@ dialog::backdrop { background: #241a19a0; }
 .check { display: flex; align-items: center; gap: 9px; }
 .check input { width: auto; }
 .form-help { margin: 0; }
+.collection-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.marketing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.marketing-grid .panel { margin-bottom: 0; }
+.marketing-product-list { display: grid; gap: 9px; margin-top: 18px; }
+.marketing-product-list > div { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: #faf8f6; }
+.marketing-product-list .thumb { width: 42px; height: 42px; }
+.marketing-product-list strong { flex: 1; font-size: 12px; }
+.marketing-product-list small { color: #987e70; font-size: 10px; }
+.marketing-grid + .panel { margin-top: 18px; }
 .translation-fields { display: grid; gap: 15px; margin: 0; padding: 18px; border: 1px solid #e5ddd7; border-radius: 12px; }
 .translation-fields legend { padding-inline: 5px; font-size: 13px; font-weight: 650; }
 .translation-fields p { margin: 0; }
@@ -171,6 +180,7 @@ dialog::backdrop { background: #241a19a0; }
   .toolbar { flex-wrap: wrap; }
   .search-field, .filter-field { width: 100%; }
   .pair { grid-template-columns: 1fr; }
+  .collection-checks, .marketing-grid { grid-template-columns: 1fr; }
   th, td { padding: 12px 14px; }
   .panel { padding: 18px; }
   .table-panel { padding: 18px 0 5px; }

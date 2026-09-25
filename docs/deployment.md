@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Four Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 6 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Five Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 7 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -16,6 +16,7 @@ Already applied, with local filenames aligned to the migration versions returned
 2. `supabase/migrations/20260924064030_product_images.sql`
 3. `supabase/migrations/20260925024641_arabic_catalog.sql`
 4. `supabase/migrations/20260925032547_cash_on_delivery.sql`
+5. `supabase/migrations/20260925035808_editorial_catalog.sql`
 
 CLI workflow from this repository, after authenticating:
 
@@ -112,3 +113,7 @@ Applied additive Arabic product fields and order-item name snapshots, then expli
 ## Cash on delivery preparation (2026-09-25)
 
 Applied migration `20260925032547` and confirmed delivery areas after checking the existing project and testing the migration on disposable PGlite. Edge Function version 6 serves the gated COD quote and order endpoints. The database calculates product, AED 15 delivery and tax totals; an order requires the displayed total to match. Stock changes, duplicate requests, collection and cancellation are transactional and audited. Hosted checks found six products, seven areas, zero orders, `fixture_mode=true` and `cod_enabled=false`. The public quote endpoint rejected with `COD_NOT_CONFIGURED`. See [launch readiness](launch-readiness.md) before opening orders.
+
+## 7. Editorial catalog and marketing preview
+
+Migration `20260925035808` adds curated collections, product galleries, dimensions, fit/styling copy, pairs, limited-edition size and verified-photo flags. It assigns the six existing illustrative products to preview collections, removes unsupported fixture badges, and preserves IDs, prices, stock and orders. Edge Function version 7 validates the new fields. The Admin can upload a main image and up to eight additional photos; its Marketing view links to the bilingual storefront concept preview. Hosted readback confirmed six products, six illustrative photo flags, six curated assignments, zero unsupported fixture badges, `fixture_mode=true` and `cod_enabled=false`. The AED 15 checkout delivery rule was not changed.

@@ -40,6 +40,7 @@
         <nav class="sidebar-nav" aria-label="Dashboard sections">
           <button type="button" class="nav-item active" data-view="overview" aria-current="page"><span class="nav-icon" aria-hidden="true">◫</span>Overview</button>
           <button type="button" class="nav-item" data-view="products"><span class="nav-icon" aria-hidden="true">▦</span>Products</button>
+          <button type="button" class="nav-item" data-view="marketing"><span class="nav-icon" aria-hidden="true">✧</span>Marketing</button>
           <button type="button" class="nav-item" data-view="orders"><span class="nav-icon" aria-hidden="true">▤</span>Orders</button>
           <button type="button" class="nav-item" data-view="payments"><span class="nav-icon" aria-hidden="true">◇</span>Payments</button>
           <button type="button" class="nav-item" data-view="settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
@@ -83,6 +84,13 @@
             <section class="panel table-panel"><div class="section-heading"><div><h2>Recent orders</h2><p id="order-results">0 orders</p></div></div><div class="toolbar"><label class="search-field"><span class="sr-only">Search orders</span><input id="order-search" type="search" placeholder="Search order or customer" /></label><label class="filter-field"><span class="sr-only">Filter orders</span><select id="order-filter"><option value="all">All statuses</option><option value="cod_pending">Cash due</option><option value="pending">Payment pending</option><option value="paid">Paid</option><option value="review">Review</option><option value="failed">Failed</option><option value="canceled">Canceled</option><option value="expired">Expired</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Fulfillment</th><th>Action</th></tr></thead><tbody id="orders"></tbody></table></div><p id="orders-empty" class="empty-state" hidden>No orders match this view. Checkout is currently disabled.</p></section>
           </section>
 
+          <section id="view-marketing" class="view" data-view-panel="marketing" hidden>
+            <div class="page-heading"><div><span class="eyebrow">EDITORIAL PLANNING</span><h1>Marketing preview</h1><p>Curate products for each shopping moment and review concepts before publishing claims.</p></div><a class="primary" id="marketing-preview-link" href="https://shopping-three-kappa.vercel.app/?marketing-preview=1" target="_blank" rel="noopener noreferrer">Open storefront demo ↗</a></div>
+            <div class="notice"><span class="notice-icon">i</span><div><strong>Concepts only</strong><p>The two-bag delivery offer, gift packaging, limited editions and next-day promise are not active policies. Confirm each before public promotion. Orders remain closed.</p></div></div>
+            <div class="marketing-grid" id="marketing-collections"></div>
+            <section class="panel"><h2>Product content checklist</h2><p>For every real product: upload the exact bag photos, confirm the photo checkbox, add English and Arabic descriptions, dimensions, what fits inside, styling notes, the right collections, and verified stock. The “last piece” label is calculated from available inventory.</p><p>Curated day-to-night pairs use the paired product ID. A limited-edition label requires a real edition size. Empty fields are simply omitted from the storefront.</p></section>
+          </section>
+
           <section id="view-payments" class="view" data-view-panel="payments" hidden>
             <div class="page-heading"><div><span class="eyebrow">TEST PAYMENT OPERATIONS</span><h1>Payments</h1><p>Verify an interrupted Ziina test payment against the provider.</p></div></div>
             <div class="payment-grid"><section class="panel"><div class="section-heading"><h2>Payment status</h2></div><div class="payment-summary"><div><span>Orders requiring review</span><strong id="payment-review-count">0</strong></div><div><span>Unprocessed webhook events</span><strong id="payment-event-count">0</strong></div></div><p class="muted-note">Live charging is disabled. A success redirect never marks an order paid; the server checks Ziina's payment state, amount and currency.</p></section><section class="panel"><h2>Recover a payment</h2><p>Enter a Ziina Payment Intent ID. The server verifies its account, order reference, currency and amount before changing an order.</p><form id="reconcile"><label>Payment Intent ID<input name="payment_intent_id" required placeholder="Enter intent ID" /></label><button class="primary">Verify with Ziina</button></form></section></div>
@@ -108,10 +116,18 @@
         <label>Stock on hand<input name="stock_quantity" type="number" min="0" max="1000000" step="1" required /></label>
         <label>Image URL or storefront asset path<input name="image" required placeholder="https://… or ./assets/bag.png" /></label>
         <label>Upload product image (PNG, JPG or WebP, max 5 MB)<input type="file" id="image-upload" accept="image/png,image/jpeg,image/webp" /></label>
+        <label>Additional image URLs (one per line, maximum 8)<textarea name="gallery" placeholder="https://…"></textarea></label>
+        <label>Upload additional photos (PNG, JPG or WebP, max 5 MB each)<input type="file" id="gallery-upload" accept="image/png,image/jpeg,image/webp" multiple /></label>
+        <label class="check"><input type="checkbox" name="photo_verified" /> These photos show the exact bag customers will receive</label>
+        <fieldset class="translation-fields"><legend>Shopping collections</legend><p>Choose every place this bag belongs. Its main bag type above controls the existing shop tabs.</p><div class="collection-checks"><label class="check"><input type="checkbox" name="collection_work" /> Work & everyday</label><label class="check"><input type="checkbox" name="collection_evening" /> Evening & occasions</label><label class="check"><input type="checkbox" name="collection_weekend" /> Weekend & hands-free</label><label class="check"><input type="checkbox" name="collection_gifts" /> Gift ideas</label></div></fieldset>
+        <div class="pair"><label>Dimensions in cm<input name="dimensions_cm" maxlength="100" placeholder="e.g. 24 × 18 × 8 cm" /></label><label>Day-to-night partner product ID<input name="pair_product_id" placeholder="Existing product ID" /></label></div>
+        <label>What fits inside (English)<textarea name="fits_inside_en" maxlength="300"></textarea></label><label>What fits inside (Arabic)<textarea name="fits_inside_ar" maxlength="300" lang="ar" dir="rtl"></textarea></label>
+        <label>Styling note (English)<textarea name="styling_en" maxlength="400"></textarea></label><label>Styling note (Arabic)<textarea name="styling_ar" maxlength="400" lang="ar" dir="rtl"></textarea></label>
+        <div class="pair"><label class="check"><input type="checkbox" name="limited_edition" /> Verified limited edition</label><label>Edition size (required if limited)<input name="edition_size" type="number" min="1" max="1000000" step="1" /></label></div>
         <label>Badge<input name="badge" maxlength="80" /></label>
         <label>Swatches (comma-separated hex colors)<input name="swatches" placeholder="#bd8d89, #dba49c" /></label>
         <label class="check"><input type="checkbox" name="active" /> Visible in the storefront</label>
-        <p class="form-help">Products created here are development fixtures. Stock cannot be reduced below reserved units.</p>
+        <p class="form-help">Products remain preview items until exact product photos are confirmed. Only use badges such as “Best Seller” when you have evidence. Stock cannot be reduced below reserved units.</p>
         <p id="product-message" role="status"></p>
         <button class="primary">Save product</button>
       </form>

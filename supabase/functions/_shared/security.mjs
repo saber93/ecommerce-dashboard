@@ -147,21 +147,38 @@ export function validateProduct(p) {
     typeof p.image !== 'string'
   )
     throw new AppError('INVALID_PRODUCT')
-  if (!(
-    /^\.\/assets\/[a-z0-9-]+\.png$/i.test(p.image) ||
-    /^https:\/\//.test(p.image)
-  ))
-    throw new AppError('INVALID_IMAGE')
-  if (p.image.startsWith('https:')) {
-    const url = new URL(p.image)
-    if (url.username || url.password) throw new AppError('INVALID_IMAGE')
+  const validImage = (image) => {
+    if (typeof image !== 'string' || image.length > 2048) return false
+    if (/^\.\/assets\/[a-z0-9-]+\.png$/i.test(image)) return true
+    try {
+      const url = new URL(image)
+      return url.protocol === 'https:' && !url.username && !url.password
+    } catch { return false }
   }
+  if (!validImage(p.image)) throw new AppError('INVALID_IMAGE')
   if (
     !Array.isArray(p.swatches) ||
     p.swatches.length > 12 ||
     p.swatches.some((c) => !/^#[a-f0-9]{6}$/i.test(c))
   )
     throw new AppError('INVALID_SWATCHES')
+  if (Object.hasOwn(p, 'collections') && (!Array.isArray(p.collections) || p.collections.length > 4 ||
+      new Set(p.collections).size !== p.collections.length ||
+      p.collections.some((key) => !['work', 'evening', 'weekend', 'gifts'].includes(key))))
+    throw new AppError('INVALID_PRODUCT')
+  if (Object.hasOwn(p, 'gallery') && (!Array.isArray(p.gallery) || p.gallery.length > 8 ||
+      p.gallery.some((image) => !validImage(image))))
+    throw new AppError('INVALID_IMAGE')
+  for (const [key, max] of [['fits_inside_en',300],['fits_inside_ar',300],
+    ['styling_en',400],['styling_ar',400],['dimensions_cm',100]]) {
+    if (Object.hasOwn(p, key) && (typeof p[key] !== 'string' || p[key].length > max)) throw new AppError('INVALID_PRODUCT')
+  }
+  if ((Object.hasOwn(p, 'limited_edition') && typeof p.limited_edition !== 'boolean') ||
+      (Object.hasOwn(p, 'photo_verified') && typeof p.photo_verified !== 'boolean') ||
+      (p.limited_edition && (!Number.isInteger(p.edition_size) || p.edition_size < 1 || p.edition_size > 1000000)) ||
+      (Object.hasOwn(p, 'limited_edition') && !p.limited_edition && p.edition_size != null) ||
+      (p.pair_product_id && (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(p.pair_product_id) || p.pair_product_id === p.id)))
+    throw new AppError('INVALID_PRODUCT')
   const translations = {};
   for (const [key, max] of [['name_ar',160],['description_ar',2000],['badge_ar',80]]) {
     if (Object.hasOwn(p, key)) {
@@ -181,6 +198,8 @@ export function validateProduct(p) {
       'image',
       'badge',
       'swatches',
+      ...['collections','gallery','fits_inside_en','fits_inside_ar','styling_en','styling_ar',
+        'dimensions_cm','limited_edition','edition_size','photo_verified','pair_product_id'].filter((k) => Object.hasOwn(p,k)),
     ].map((k) => [k, p[k]]),
   )}
 }

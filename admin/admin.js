@@ -7,7 +7,8 @@
   } catch {}
   let products = [];
   let orders = [];
-  const views = new Set(["overview", "products", "orders", "payments", "settings"]);
+  const views = new Set(["overview", "products", "marketing", "orders", "payments", "settings"]);
+  const collectionLabels = {work: "Work & everyday", evening: "Evening & occasions", weekend: "Weekend & hands-free", gifts: "Gift ideas"};
   const money = (value) =>
     new Intl.NumberFormat("en-AE", {
       style: "currency",
@@ -161,6 +162,17 @@
       badge: "",
       swatches: [],
       active: false,
+      collections: [],
+      gallery: [],
+      fits_inside_en: "",
+      fits_inside_ar: "",
+      styling_en: "",
+      styling_ar: "",
+      dimensions_cm: "",
+      limited_edition: false,
+      edition_size: null,
+      photo_verified: false,
+      pair_product_id: "",
     },
   ) {
     const f = $("product-form");
@@ -176,11 +188,22 @@
       "name_ar",
       "description_ar",
       "badge_ar",
+      "fits_inside_en",
+      "fits_inside_ar",
+      "styling_en",
+      "styling_ar",
+      "dimensions_cm",
+      "pair_product_id",
     ])
       f.elements[name].value = p[name] ?? "";
     f.elements.id.readOnly = !!p.id;
     f.elements.price.value = (p.price_minor / 100).toFixed(2);
     f.elements.swatches.value = p.swatches.join(", ");
+    f.elements.gallery.value = (p.gallery || []).join("\n");
+    f.elements.edition_size.value = p.edition_size ?? "";
+    f.elements.limited_edition.checked = Boolean(p.limited_edition);
+    f.elements.photo_verified.checked = Boolean(p.photo_verified);
+    for (const key of Object.keys(collectionLabels)) f.elements[`collection_${key}`].checked = (p.collections || []).includes(key);
     f.elements.active.checked = p.active;
     $("product-dialog-title").textContent = p.id ? "Edit product" : "Add product";
     $("product-message").textContent = "";
@@ -258,13 +281,14 @@
       const group = document.createElement("div");
       group.className = "product-cell";
       const name = document.createElement("div");
-      name.append(text("strong", p.name), text("small", p.id));
+      name.append(text("strong", p.name), text("small", `${p.id} · ${[p.category === 'face' ? 'Everyday' : p.category === 'lips' ? 'Occasion' : 'Shoulder', ...(p.collections || []).map(key => collectionLabels[key])].join(' / ')}`));
       group.append(thumbnail(p), name);
       identity.append(group);
       const stock = text("td", `${available(p)} available · ${p.reserved_quantity} reserved`);
       if (available(p) <= 5) stock.className = "low-stock";
       const visibility = document.createElement("td");
       visibility.append(badge(p.active ? "visible" : "hidden"));
+      if (p.fixture) visibility.append(text("small", "Illustrative image"));
       const action = document.createElement("td");
       action.className = "action-cell";
       action.append(button("Edit", () => editProduct(p)));
@@ -347,6 +371,25 @@
       $("recent-orders").append(empty);
     }
   }
+  function renderMarketing() {
+    const root = $("marketing-collections");
+    root.replaceChildren(...Object.entries(collectionLabels).map(([key, label]) => {
+      const section = document.createElement("section");
+      section.className = "panel";
+      const matching = products.filter(p => p.active && (p.collections || []).includes(key));
+      section.append(text("h2", label), text("p", `${matching.length} visible products`));
+      const list = document.createElement("div");
+      list.className = "marketing-product-list";
+      for (const product of matching) {
+        const row = document.createElement("div");
+        row.append(thumbnail(product), text("strong", product.name), text("small", product.photo_verified ? "Photo confirmed" : "Preview image"));
+        list.append(row);
+      }
+      if (!matching.length) list.append(text("p", "Assign a product to this collection in the catalog editor."));
+      section.append(list);
+      return section;
+    }));
+  }
   async function load() {
     const data = await api("list");
     products = data.products || [];
@@ -385,6 +428,7 @@
     renderProducts();
     renderOrders();
     renderOverview();
+    renderMarketing();
     navigate(currentView);
   }
   for (const nav of document.querySelectorAll("[data-view]"))
@@ -399,6 +443,7 @@
   $("order-search").addEventListener("input", renderOrders);
   $("order-filter").addEventListener("change", renderOrders);
   $("storefront-link").href = config.storefrontUrl || "https://shopping-three-kappa.vercel.app";
+  $("marketing-preview-link").href = `${config.storefrontUrl || "https://shopping-three-kappa.vercel.app"}/?marketing-preview=1`;
   $("login").addEventListener("submit", async (event) => {
     event.preventDefault();
     try {
@@ -445,6 +490,13 @@
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
+    data.gallery = data.gallery.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    data.collections = Object.keys(collectionLabels).filter(key => f.elements[`collection_${key}`].checked);
+    for (const key of Object.keys(collectionLabels)) delete data[`collection_${key}`];
+    data.photo_verified = f.elements.photo_verified.checked;
+    data.limited_edition = f.elements.limited_edition.checked;
+    data.edition_size = data.limited_edition ? Number(data.edition_size) : null;
+    data.pair_product_id = data.pair_product_id.trim() || null;
     try {
       await api("product", data);
       $("product-dialog").close();
@@ -453,41 +505,52 @@
       $("product-message").textContent = e.message;
     }
   });
-  $("image-upload").addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  async function uploadImage(file) {
     if (
       !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
       file.size > 5 * 1024 * 1024
-    ) {
-      $("product-message").textContent =
-        "Choose a PNG, JPG or WebP image up to 5 MB.";
+    ) throw new Error("Choose PNG, JPG or WebP images up to 5 MB each.");
+    if (Date.now() > session.expires_at - 60000)
+      await auth("refresh_token", { refresh_token: session.refresh_token });
+    const response = await fetch(`${config.apiBase}/image`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": file.type,
+      },
+      body: file,
+      signal: AbortSignal.timeout(30000),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error("Image upload failed. Check bucket setup and Admin access.");
+    return result.url;
+  }
+  $("image-upload").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    $("product-message").textContent = "Uploading primary image…";
+    try {
+      $("product-form").elements.image.value = await uploadImage(file);
+      $("product-message").textContent = "Primary image uploaded. Save the product to apply it.";
+    } catch (e) { $("product-message").textContent = e.message; }
+  });
+  $("gallery-upload").addEventListener("change", async (event) => {
+    const files = [...event.target.files];
+    if (!files.length) return;
+    const field = $("product-form").elements.gallery;
+    const current = field.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (current.length + files.length > 8) {
+      $("product-message").textContent = "A product can have up to 8 additional photos.";
       return;
     }
-    $("product-message").textContent = "Uploading image…";
     try {
-      if (Date.now() > session.expires_at - 60000)
-        await auth("refresh_token", { refresh_token: session.refresh_token });
-      const response = await fetch(`${config.apiBase}/image`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": file.type,
-        },
-        body: file,
-        signal: AbortSignal.timeout(30000),
-      });
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(
-          "Image upload failed. Check bucket setup and Admin access.",
-        );
-      $("product-form").elements.image.value = result.url;
-      $("product-message").textContent =
-        "Image uploaded. Save the product to apply it.";
-    } catch (e) {
-      $("product-message").textContent = e.message;
-    }
+      for (const [index, file] of files.entries()) {
+        $("product-message").textContent = `Uploading additional photo ${index + 1} of ${files.length}…`;
+        current.push(await uploadImage(file));
+        field.value = current.join("\n");
+      }
+      $("product-message").textContent = "Photos uploaded. Save the product to apply them.";
+    } catch (e) { $("product-message").textContent = e.message; }
   });
   $("reconcile").addEventListener("submit", async (event) => {
     event.preventDefault();

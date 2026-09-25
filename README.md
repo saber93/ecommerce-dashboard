@@ -28,7 +28,7 @@ Admin preview: `http://localhost:9001`. The public project key is configured in 
 
 ## Deployment
 
-Follow [deployment instructions](docs/deployment.md). Four additive migrations, the six existing products, seven confirmed UAE delivery areas and Edge Function `commerce` version 6 are deployed to the existing cloud project. The storefront and separate Admin are deployed as development previews on Vercel. The owner reports adding the Admin Auth redirect URL; a read-only database check confirmed the requested administrator's verified email, password hash and private membership. Browser sign-in and authenticated Admin operations remain unverified. Cash on delivery remains closed while real photos and business details are missing. No real Ziina payment has been performed.
+Follow [deployment instructions](docs/deployment.md). Five additive migrations, the six existing products, seven confirmed UAE delivery areas and Edge Function `commerce` version 7 are deployed to the existing cloud project. The storefront and separate Admin are deployed as development previews on Vercel. The owner reports adding the Admin Auth redirect URL; a read-only database check confirmed the requested administrator's verified email, password hash and private membership. Browser sign-in and authenticated Admin operations remain unverified. Cash on delivery remains closed while real photos and business details are missing. No real Ziina payment has been performed.
 
 See [business settings](docs/business-settings.md) for the distinction between confirmed choices, fixtures and unresolved production settings. See [launch readiness](docs/launch-readiness.md) and [verification](docs/verification.md) for the remaining gates and tested behavior.
 
@@ -40,7 +40,7 @@ See [business settings](docs/business-settings.md) for the distinction between c
 - Transactional stock reservation, payment-to-order transitions, fulfillment marking and audit records.
 - Separate gated cash-on-delivery quote and order flow with transactional stock deduction, Admin collection and cancellation actions.
 - Admin email/password authentication through Supabase Auth plus a private database allowlist.
-- Product management, stock editing, public image uploads, latest 100 orders, payment verification/recovery.
+- Product management, stock editing, public image uploads and galleries, multilingual fit/styling details, curated collection assignments, day-to-night pairing, verified limited-edition and photo flags, latest 100 orders, payment verification/recovery.
 - Persistent webhook inbox, bounded reconciliation and retry backoff. A scheduler still needs deployment configuration.
 
-Advanced promotions, variants, refunds/returns UI, carrier integrations, customer accounts, transactional email/digital invoices and production tax rules are not implemented. The storefront now uses the confirmed support phone instead of a placeholder newsletter form.
+Advanced promotions, variants, refunds/returns UI, carrier integrations, customer accounts, transactional email/digital invoices and production tax rules are not implemented. The two-bag free-delivery offer is a marketing concept, not a checkout rule. The storefront now uses the confirmed support phone instead of a placeholder newsletter form.

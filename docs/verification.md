@@ -69,6 +69,13 @@ PGlite uses one local connection; its competing-checkout test proves transaction
 
 Eight generated local images now cover the hero, editorial, and six product styles. The development fixture names, category labels and image URLs were updated in the local storefront and guarded remote fixture refresh; no prices, stock, order data or production shipping/tax settings were changed. Hosted catalog response and local image loading were rechecked. The originals were moved to `/Users/me/Downloads/ecommerce-original-photos-20260924`; the storefront references only the new handbag images.
 
+## Marketing preview and real-product fields (2026-09-25)
+
+- Additive migration `20260925035808` passed disposable PGlite tests before hosted application. Remote readback found six unchanged prices and stock counts, six curated assignments, zero unsupported fixture badges, and no change to `fixture_mode=true` or `cod_enabled=false`.
+- Edge Function version 7 returned the new collection and dynamic last-piece fields through the hosted catalog endpoint. No real product was created and no customer order was placed.
+- Local English and Arabic preview pages rendered all five collection cards and six products without page errors. The Arabic mobile collection filter narrowed to three evening products and opened a product gallery. The Admin editor rendered its collection choices and multi-image upload control, but authenticated owner save/upload remains externally unverified.
+- Free delivery on two bags, next-day cutoff, gift packaging and restock alerts are clearly marked preview concepts. The AED 15 checkout delivery rule is unchanged.
+
 ## Arabic catalog update (2026-09-25)
 
 - Migration `20260925024641` adds Arabic product fields and order-item name snapshots; verified preservation of an existing catalog and pending order in PGlite before applying it.
