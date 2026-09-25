@@ -102,7 +102,8 @@
         <div class="dialog-heading"><div><span class="eyebrow">CATALOG EDITOR</span><h2 id="product-dialog-title">Edit product</h2></div><button type="button" data-close="product-dialog" class="quiet-button">Close</button></div>
         <label>Product ID<input name="id" pattern="[a-z0-9][a-z0-9-]{0,79}" required /></label>
         <label>Name<input name="name" maxlength="160" required /></label>
-        <label>Description<textarea name="description" maxlength="2000"></textarea></label>
+        <label>Description (English)<textarea name="description" maxlength="2000" lang="en" dir="ltr"></textarea></label>
+        <fieldset class="translation-fields"><legend>Arabic storefront content</legend><p>Use Arabic copy for the Arabic storefront. Empty fields fall back to English.</p><label>Name (Arabic)<input name="name_ar" maxlength="160" lang="ar" dir="rtl" /></label><label>Description (Arabic)<textarea name="description_ar" maxlength="2000" lang="ar" dir="rtl"></textarea></label><label>Badge (Arabic)<input name="badge_ar" maxlength="80" lang="ar" dir="rtl" /></label></fieldset>
         <div class="pair"><label>Category<select name="category"><option value="face">Everyday</option><option value="lips">Occasion</option><option value="eyes">Shoulder</option></select></label><label>Price (AED)<input name="price" type="number" min="0.01" max="1000000" step="0.01" required /></label></div>
         <label>Stock on hand<input name="stock_quantity" type="number" min="0" max="1000000" step="1" required /></label>
         <label>Image URL or storefront asset path<input name="image" required placeholder="https://… or ./assets/bag.png" /></label>

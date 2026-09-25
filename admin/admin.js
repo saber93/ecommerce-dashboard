@@ -169,8 +169,11 @@
       "stock_quantity",
       "image",
       "badge",
+      "name_ar",
+      "description_ar",
+      "badge_ar",
     ])
-      f.elements[name].value = p[name];
+      f.elements[name].value = p[name] ?? "";
     f.elements.id.readOnly = !!p.id;
     f.elements.price.value = (p.price_minor / 100).toFixed(2);
     f.elements.swatches.value = p.swatches.join(", ");

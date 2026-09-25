@@ -23,6 +23,7 @@ export async function database() {
       'utf8',
     ),
   )
+  await db.exec(await readFile(new URL('../supabase/migrations/20260925024641_arabic_catalog.sql', import.meta.url), 'utf8'))
   return db
 }
 export async function reset(db) {
@@ -36,6 +37,7 @@ export async function reset(db) {
     ),
   )
   await db.query('insert into commerce.admins(user_id) values($1)', [adminId])
+  await db.exec(await readFile(new URL('../supabase/fixtures/arabic.sql', import.meta.url), 'utf8'))
 }
 export async function rpc(db, name, args = {}) {
   const keys = Object.keys(args)

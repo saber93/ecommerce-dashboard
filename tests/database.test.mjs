@@ -304,3 +304,26 @@ test('admin cannot set stock below reserved units', async () => {
     reserved_quantity: 1,
   })
 })
+
+test('Arabic catalog content is public while stock and Admin access remain private', async () => {
+  await db.exec('set role anon')
+  const catalog = await rpc(db, 'commerce_catalog')
+  const product = catalog.products.find(p => p.id === 'blush-duo')
+  assert.equal(product.name_ar, 'حقيبة روز بمقبض علوي')
+  assert.equal(product.price_minor, 16500)
+  assert.equal(product.stock_quantity, undefined)
+  await assert.rejects(rpc(db, 'commerce_admin', {p_actor:adminId,p_action:'list'}), /permission denied/)
+  await db.exec('reset role')
+})
+
+test('older Admin clients preserve Arabic fields and order names stay as sold', async () => {
+  const original = (await rpc(db, 'commerce_admin', {p_actor:adminId,p_action:'list'})).products.find(p=>p.id==='blush-duo')
+  const {name_ar,description_ar,badge_ar,...legacy} = original
+  await rpc(db,'commerce_admin',{p_actor:adminId,p_action:'product',p_data:legacy})
+  const order = await rpc(db,'commerce_checkout',checkoutArgs())
+  await rpc(db,'commerce_admin',{p_actor:adminId,p_action:'product',p_data:{...original,name_ar:'اسم عربي جديد'}})
+  const saved = await rpc(db,'commerce_order',{p_id:order.id,p_token_hash:'a'.repeat(64)})
+  assert.equal(saved.items[0].name_ar,name_ar)
+  assert.equal(saved.items[0].name,original.name)
+  assert.equal(saved.total_minor,original.price_minor)
+})

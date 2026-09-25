@@ -14,7 +14,7 @@
 
 ## Verified locally
 
-`pnpm test`: 34 passing tests. `pnpm build`: passed. Edge entry point: Deno check passed.
+`pnpm test`: 38 passing tests. `pnpm build`: passed. Edge entry point: Deno check passed.
 
 - Initial commerce migration executes on PGlite, with synthetic Supabase roles/Auth table.
 - Storage migration executes against a local stub of the managed buckets table; this checks SQL and preservation behavior, not the hosted Storage service.
@@ -60,3 +60,10 @@ PGlite uses one local connection; its competing-checkout test proves transaction
 ## Handbag visual refresh (2026-09-24)
 
 Eight generated local images now cover the hero, editorial, and six product styles. The development fixture names, category labels and image URLs were updated in the local storefront and guarded remote fixture refresh; no prices, stock, order data or production shipping/tax settings were changed. Hosted catalog response and local image loading were rechecked. The originals were moved to `/Users/me/Downloads/ecommerce-original-photos-20260924`; the storefront references only the new handbag images.
+
+## Arabic catalog update (2026-09-25)
+
+- Migration `20260925024641` adds Arabic product fields and order-item name snapshots; verified preservation of an existing catalog and pending order in PGlite before applying it.
+- Hosted migration and Edge Function version 5 are active. Public catalog returns all six Arabic names and descriptions. Protected catalog digest stayed `9011de7898c49dc8442968b9cbcb6804`; six products and zero orders remain.
+- Tests cover optional-field validation, omission preserving existing translations, private table/RPC access and Arabic order snapshots. All 38 backend tests pass.
+- Admin browser check loaded and submitted Arabic fields with an intercepted API response, including zero stock. An authenticated hosted save is still unverified.

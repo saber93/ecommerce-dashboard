@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 4 deployed. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in, authenticated Admin operations and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 5 deployed. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in, authenticated Admin operations and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -14,6 +14,7 @@ Already applied, with local filenames aligned to the migration versions returned
 
 1. `supabase/migrations/20260924063653_commerce.sql`
 2. `supabase/migrations/20260924064030_product_images.sql`
+3. `supabase/migrations/20260925024641_arabic_catalog.sql`
 
 CLI workflow from this repository, after authenticating:
 
@@ -102,3 +103,7 @@ No separate Node server, Redis service or DigitalOcean resource is required by t
 Verify authentication and cross-account denial, catalog changes, Storage limits, cart totals, inventory with independent concurrent PostgreSQL sessions, test Ziina success/failure/cancellation/pending, duplicate/out-of-order delivery, restarts/timeouts, reconciliation scheduling, and order fulfillment. Measure Edge-to-database and UAE checkout timings. Do not enable live mode as a workaround for missing test credentials.
 
 References: [Supabase CLI](https://supabase.com/docs/reference/cli/introduction), [Edge Functions](https://supabase.com/docs/guides/functions), [Cron](https://supabase.com/docs/guides/cron), [Ziina Payment Intents](https://docs.ziina.com/api-reference/payment-intent/index), [Ziina webhooks](https://docs.ziina.com/api-reference/webhook).
+
+## Arabic storefront content (2026-09-25)
+
+Applied additive Arabic product fields and order-item name snapshots, then explicitly applied the guarded `supabase/fixtures/arabic.sql` translations for six existing demo handbags. English catalog details, prices, stock and visibility have the same digest before and after migration; order count remains zero. Edge Function version 5 validates optional Arabic fields and preserves translations submitted by older Admin clients. The product editor now includes Arabic name, description and badge fields. The storefront builds English and Arabic HTML from shared templates and locale dictionaries in the storefront repository. No shipping, tax, payment or access-control settings changed.

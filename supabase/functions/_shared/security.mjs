@@ -159,7 +159,14 @@ export function validateProduct(p) {
     p.swatches.some((c) => !/^#[a-f0-9]{6}$/i.test(c))
   )
     throw new AppError('INVALID_SWATCHES')
-  return Object.fromEntries(
+  const translations = {};
+  for (const [key, max] of [['name_ar',160],['description_ar',2000],['badge_ar',80]]) {
+    if (Object.hasOwn(p, key)) {
+      if (typeof p[key] !== 'string' || p[key].length > max) throw new AppError('INVALID_PRODUCT');
+      translations[key] = p[key].trim();
+    }
+  }
+  return {...translations, ...Object.fromEntries(
     [
       'id',
       'name',
@@ -172,7 +179,7 @@ export function validateProduct(p) {
       'badge',
       'swatches',
     ].map((k) => [k, p[k]]),
-  )
+  )}
 }
 
 export function imageExtension(bytes, type) {

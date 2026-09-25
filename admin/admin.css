@@ -140,6 +140,9 @@ dialog::backdrop { background: #241a19a0; }
 .check { display: flex; align-items: center; gap: 9px; }
 .check input { width: auto; }
 .form-help { margin: 0; }
+.translation-fields { display: grid; gap: 15px; margin: 0; padding: 18px; border: 1px solid #e5ddd7; border-radius: 12px; }
+.translation-fields legend { padding-inline: 5px; font-size: 13px; font-weight: 650; }
+.translation-fields p { margin: 0; }
 #product-message:empty { display: none; }
 #order-details p { padding: 10px 0; margin: 0; border-bottom: 1px solid #f1eeeb; }
 @media (max-width: 1150px) {
