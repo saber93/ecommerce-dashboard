@@ -43,6 +43,12 @@
 - A read-only database query confirmed one matching `auth.users` row for `saber.elshafey@gmail.com`, a confirmed email, a nonempty password hash, and one matching `commerce.admins` membership. No password or hash was retrieved.
 - Authenticated browser sign-in and Admin API operations remain unverified; they require the owner's session.
 
+## Dashboard and database visibility update (2026-09-25)
+
+- Re-inspected the existing project in read-only mode: the `commerce` schema contains eight application tables, six products, one Admin membership, and no orders. The `public` schema has no application tables. The Admin Settings view now links to the Supabase Table Editor and explains the schema selector.
+- Rebuilt the Admin as a commerce dashboard with Overview, Products, Orders, Payments and Settings views. Counts and lists come from the existing Admin API; no sample revenue or order figures are fabricated.
+- Browser checked desktop and mobile layouts using a simulated authenticated Admin response populated from the public catalog. Search narrowed six products to one, the empty orders state and schema help rendered, and the browser reported no JavaScript errors. Product images loaded from the existing storefront. This checks UI behavior, not a real authenticated session.
+
 ## Not externally verified
 
 No reconciliation scheduler has been applied. Auth configuration reads and Edge secret writes returned missing-scope errors even after database/function/key access was restored. The deployed entry point therefore has explicit nonsecret allowed origins for local development, the storefront preview, and the Admin site.

@@ -6,6 +6,8 @@
     session = JSON.parse(sessionStorage.getItem("elan-admin-session"));
   } catch {}
   let products = [];
+  let orders = [];
+  const views = new Set(["overview", "products", "orders", "payments", "settings"]);
   const money = (value) =>
     new Intl.NumberFormat("en-AE", {
       style: "currency",
@@ -19,6 +21,7 @@
   const button = (label, action) => {
     const el = text("button", label);
     el.type = "button";
+    el.className = "row-action";
     el.addEventListener("click", () =>
       Promise.resolve(action()).catch((e) => {
         $("message").textContent = e.message;
@@ -30,7 +33,7 @@
     session = null;
     sessionStorage.removeItem("elan-admin-session");
     $("workspace").hidden = true;
-    $("logout").hidden = true;
+    $("auth-shell").hidden = false;
     $("login-panel").hidden = false;
   }
   async function auth(grant, body) {
@@ -172,6 +175,7 @@
     f.elements.price.value = (p.price_minor / 100).toFixed(2);
     f.elements.swatches.value = p.swatches.join(", ");
     f.elements.active.checked = p.active;
+    $("product-dialog-title").textContent = p.id ? "Edit product" : "Add product";
     $("product-message").textContent = "";
     $("product-dialog").showModal();
   }
@@ -192,64 +196,183 @@
     root.append(text("p", `Total: ${money(o.total_minor)} · ${o.status}`));
     $("order-dialog").showModal();
   }
-  async function load() {
-    const data = await api("list");
-    products = data.products;
-    $("login-panel").hidden = true;
-    $("workspace").hidden = false;
-    $("logout").hidden = false;
-    $("product-count").textContent = products.length;
-    $("order-count").textContent = data.orders.length;
-    $("review-count").textContent = data.orders.filter(
-      (o) =>
-        o.status === "review" || (o.payment_started && !o.payment_intent_id),
-    ).length;
-    $("products").replaceChildren();
-    for (const p of products) {
-      const row = document.createElement("tr");
-      for (const value of [
-        p.name,
-        money(p.price_minor),
-        `${p.stock_quantity} / ${p.reserved_quantity}`,
-        p.active ? "Visible" : "Hidden",
-      ])
-        row.append(text("td", value));
-      const td = document.createElement("td");
-      td.append(button("Edit", () => editProduct(p)));
-      row.append(td);
-      $("products").append(row);
+  let currentView = "overview";
+  const available = (p) => p.stock_quantity - p.reserved_quantity;
+  const badge = (value) => {
+    const el = text("span", value);
+    el.className = `badge ${["visible", "paid", "fulfilled", "pending", "review", "failed", "canceled", "expired"].includes(value) ? value : ""}`;
+    return el;
+  };
+  function thumbnail(product) {
+    const root = text("div", "É");
+    root.className = "thumb";
+    try {
+      const source = new URL(product.image, `${config.storefrontUrl || "https://shopping-three-kappa.vercel.app"}/`);
+      if (source.protocol === "https:" || (source.protocol === "http:" && source.hostname === "localhost")) {
+        const img = document.createElement("img");
+        img.alt = "";
+        img.loading = "eager";
+        img.addEventListener("error", () => { root.textContent = "É"; }, { once: true });
+        img.src = source.href;
+        root.replaceChildren(img);
+      }
+    } catch {}
+    return root;
+  }
+  function navigate(view) {
+    if (!views.has(view)) return;
+    currentView = view;
+    for (const panel of document.querySelectorAll("[data-view-panel]"))
+      panel.hidden = panel.dataset.viewPanel !== view;
+    for (const nav of document.querySelectorAll("[data-view]")) {
+      const active = nav.dataset.view === view;
+      nav.classList.toggle("active", active);
+      if (active) nav.setAttribute("aria-current", "page");
+      else nav.removeAttribute("aria-current");
     }
-    $("orders").replaceChildren();
-    for (const o of data.orders) {
+    $("view-crumb").textContent = view[0].toUpperCase() + view.slice(1);
+    window.scrollTo(0, 0);
+  }
+  function renderProducts() {
+    const query = $("product-search").value.trim().toLowerCase();
+    const filter = $("product-filter").value;
+    const shown = products.filter((p) => {
+      if (!`${p.name} ${p.id} ${p.category}`.toLowerCase().includes(query)) return false;
+      return filter === "all" ||
+        (filter === "visible" && p.active) ||
+        (filter === "hidden" && !p.active) ||
+        (filter === "low" && available(p) <= 5);
+    });
+    $("product-results").textContent = `${shown.length} of ${products.length} products`;
+    $("products-empty").hidden = shown.length > 0;
+    const rows = shown.map((p) => {
       const row = document.createElement("tr");
-      for (const value of [
-        o.id.slice(0, 8),
-        o.customer.name,
-        money(o.total_minor),
-        o.status,
-        o.fulfillment,
-      ])
-        row.append(text("td", value));
-      const td = document.createElement("td");
-      td.append(button("View", () => details(o.id)));
+      const identity = document.createElement("td");
+      const group = document.createElement("div");
+      group.className = "product-cell";
+      const name = document.createElement("div");
+      name.append(text("strong", p.name), text("small", p.id));
+      group.append(thumbnail(p), name);
+      identity.append(group);
+      const stock = text("td", `${available(p)} available · ${p.reserved_quantity} reserved`);
+      if (available(p) <= 5) stock.className = "low-stock";
+      const visibility = document.createElement("td");
+      visibility.append(badge(p.active ? "visible" : "hidden"));
+      const action = document.createElement("td");
+      action.className = "action-cell";
+      action.append(button("Edit", () => editProduct(p)));
+      row.append(identity, text("td", money(p.price_minor)), stock, visibility, action);
+      return row;
+    });
+    $("products").replaceChildren(...rows);
+  }
+  function renderOrders() {
+    const query = $("order-search").value.trim().toLowerCase();
+    const filter = $("order-filter").value;
+    const shown = orders.filter((o) => {
+      if (!`${o.id} ${o.customer?.name || ""} ${o.customer?.email || ""}`.toLowerCase().includes(query)) return false;
+      return filter === "all" || o.status === filter;
+    });
+    $("order-results").textContent = `${shown.length} of ${orders.length} recent orders`;
+    $("orders-empty").hidden = shown.length > 0;
+    const rows = shown.map((o) => {
+      const row = document.createElement("tr");
+      const identity = document.createElement("td");
+      const group = document.createElement("div");
+      group.className = "order-id";
+      group.append(text("strong", `#${o.id.slice(0, 8)}`), text("small", new Date(o.created_at).toLocaleDateString("en-AE", { day: "numeric", month: "short", year: "numeric" })));
+      identity.append(group);
+      const payment = document.createElement("td");
+      payment.append(badge(o.status));
+      const fulfillment = document.createElement("td");
+      fulfillment.append(badge(o.fulfillment));
+      const action = document.createElement("td");
+      action.className = "action-cell";
+      action.append(button("View", () => details(o.id)));
       if (o.status === "paid" && o.fulfillment === "unfulfilled")
-        td.append(
-          button("Mark fulfilled", async () => {
-            await api("fulfill", { id: o.id });
-            await load();
-          }),
-        );
+        action.append(button("Mark fulfilled", async () => {
+          await api("fulfill", { id: o.id });
+          await load();
+        }));
       if (o.payment_intent_id && o.status !== "paid")
-        td.append(
-          button("Verify payment", async () => {
-            await api("reconcile", { payment_intent_id: o.payment_intent_id });
-            await load();
-          }),
-        );
-      row.append(td);
-      $("orders").append(row);
+        action.append(button("Verify payment", async () => {
+          await api("reconcile", { payment_intent_id: o.payment_intent_id });
+          await load();
+        }));
+      row.append(identity, text("td", o.customer?.name || "Guest"), text("td", money(o.total_minor)), payment, fulfillment, action);
+      return row;
+    });
+    $("orders").replaceChildren(...rows);
+  }
+  function renderOverview() {
+    const featured = products.filter((p) => p.active).concat(products.filter((p) => !p.active)).slice(0, 4);
+    $("featured-products").replaceChildren(...featured.map((p) => {
+      const item = document.createElement("div");
+      item.className = "featured-item";
+      item.append(thumbnail(p), text("strong", p.name), text("small", money(p.price_minor)));
+      return item;
+    }));
+    if (!featured.length) $("featured-products").append(text("p", "No products yet. Add a product to start your collection."));
+    $("recent-orders").replaceChildren(...orders.slice(0, 4).map((o) => {
+      const item = document.createElement("div");
+      item.className = "recent-order";
+      const label = document.createElement("div");
+      label.append(text("strong", `#${o.id.slice(0, 8)} · ${o.customer?.name || "Guest"}`), text("small", money(o.total_minor)));
+      item.append(label, badge(o.status));
+      return item;
+    }));
+    if (!orders.length) {
+      const empty = text("p", "No orders yet. New orders will appear here after test checkout is configured.");
+      empty.className = "empty-state";
+      $("recent-orders").append(empty);
     }
   }
+  async function load() {
+    const data = await api("list");
+    products = data.products || [];
+    orders = data.orders || [];
+    const settings = data.settings || {};
+    const review = orders.filter((o) => o.status === "review" || (o.payment_started && !o.payment_intent_id)).length;
+    const lowStock = products.filter((p) => available(p) <= 5).length;
+    const events = Number(data.unprocessed_events || 0);
+    $("auth-shell").hidden = true;
+    $("workspace").hidden = false;
+    $("product-count").textContent = products.length;
+    $("visible-count").textContent = products.filter((p) => p.active).length;
+    $("low-stock-count").textContent = lowStock;
+    $("order-count").textContent = orders.length;
+    $("review-count").textContent = review;
+    $("payment-review-count").textContent = review;
+    $("event-count").textContent = events;
+    $("payment-event-count").textContent = events;
+    $("stock-alert-count").textContent = lowStock;
+    $("setting-currency").textContent = settings.currency || "AED";
+    $("setting-fixtures").textContent = settings.fixture_mode ? "Development fixtures" : "Production catalog";
+    $("setting-checkout").textContent = settings.checkout_enabled ? "Enabled in database" : "Disabled";
+    $("setting-shipping").textContent = settings.shipping_minor == null ? "Not confirmed" : `${money(settings.shipping_minor)}${settings.fixture_mode ? " · development" : ""}`;
+    $("setting-tax").textContent = settings.tax_basis_points == null ? "Not confirmed" : `${(settings.tax_basis_points / 100).toFixed(2)}%${settings.fixture_mode ? " · development" : ""}`;
+    $("setting-countries").textContent = settings.allowed_countries?.length ? `${settings.allowed_countries.join(", ")}${settings.fixture_mode ? " · development" : ""}` : "Not confirmed";
+    $("checkout-banner").querySelector("p").textContent = settings.checkout_enabled
+      ? "Test checkout is enabled in the database. Verify Ziina configuration and the full payment flow before accepting orders."
+      : "Products are demo fixtures. Checkout remains unavailable until test payments and business settings are configured.";
+    $("orders-empty").textContent = settings.checkout_enabled ? "No orders match this view." : "No orders match this view. Checkout is currently disabled.";
+    renderProducts();
+    renderOrders();
+    renderOverview();
+    navigate(currentView);
+  }
+  for (const nav of document.querySelectorAll("[data-view]"))
+    nav.addEventListener("click", () => navigate(nav.dataset.view));
+  for (const link of document.querySelectorAll("[data-open-view]"))
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigate(link.dataset.openView);
+    });
+  $("product-search").addEventListener("input", renderProducts);
+  $("product-filter").addEventListener("change", renderProducts);
+  $("order-search").addEventListener("input", renderOrders);
+  $("order-filter").addEventListener("change", renderOrders);
+  $("storefront-link").href = config.storefrontUrl || "https://shopping-three-kappa.vercel.app";
   $("login").addEventListener("submit", async (event) => {
     event.preventDefault();
     try {

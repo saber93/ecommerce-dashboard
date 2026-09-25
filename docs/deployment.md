@@ -27,6 +27,8 @@ Inspect the dry-run target before push. Never put passwords in shell arguments o
 
 Explicitly applied `supabase/fixtures/development.sql` to the inspected development project. Six products now exist and there are zero orders. This is temporary demo catalog/settings data. It does not run as part of `db push`.
 
+The Supabase Table Editor defaults to `public`, which has no application tables here. Select the private `commerce` schema in its schema selector to view `admins`, `audit_log`, `order_items`, `orders`, `payment_events`, `products`, `rate_limits`, and `settings`. The hosted project was queried again on 2026-09-25: all eight tables exist, with six products, one Admin membership and no orders. Keep `commerce` out of the exposed Data API schemas; use the controlled Edge API for storefront and Admin writes.
+
 ## 3. Admin identity and images
 
 Created `saber.elshafey@gmail.com` through Supabase Auth with no password and without bypassing email confirmation, then allowlisted only its returned UUID in `commerce.admins`. No invitation/reset email has been sent. No browser-accessible admin enrollment exists.
@@ -91,7 +93,7 @@ Never-submitted expired reservations are released. A possibly submitted payment 
 
 **Storefront:** `/Users/me/Downloads/ecommerce` is pushed to `saber93/shopping` `main` and deployed through the existing Vercel `evali1/shopping` project at `https://shopping-three-kappa.vercel.app`. The static site loads the hosted Supabase catalog; Edge CORS allows this origin. Checkout is disabled by the server until Ziina configuration is present. The catalog uses development fixtures and the pages request `noindex` while business details remain unconfirmed.
 
-**Admin:** the user published the `evali1/ecommerce-dashboard` project at `https://ecommerce-dashboard-omega-khaki.vercel.app`, connected to `saber93/ecommerce-dashboard` `main`. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. The exact Admin origin passed hosted Edge CORS preflight. The owner reports adding the exact Admin origin to Supabase Auth Redirect URLs; the live Admin recovery request uses that URL. Owner confirmation, password and membership are verified. Browser sign-in and authenticated Admin operations remain to be tested by the owner.
+**Admin:** the user published the `evali1/ecommerce-dashboard` project at `https://ecommerce-dashboard-omega-khaki.vercel.app`, connected to `saber93/ecommerce-dashboard` `main`. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. The exact Admin origin passed hosted Edge CORS preflight. The owner reports adding the exact Admin origin to Supabase Auth Redirect URLs; the live Admin recovery request uses that URL. Owner confirmation, password and membership are verified. The dashboard has Overview, Products, Orders, Payments and Settings views with data from the Admin API. Browser sign-in and authenticated Admin operations remain to be tested by the owner.
 
 No separate Node server, Redis service or DigitalOcean resource is required by this implementation. Existing Vercel/Supabase usage charges still apply.
 

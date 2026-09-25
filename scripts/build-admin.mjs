@@ -20,6 +20,7 @@ const config = {
   supabaseUrl: "https://ffukncssuqmwlowdrbau.supabase.co",
   publishableKey: key,
   apiBase: "https://ffukncssuqmwlowdrbau.supabase.co/functions/v1/commerce",
+  storefrontUrl: "https://shopping-three-kappa.vercel.app",
 };
 await writeFile(
   "dist/config.js",

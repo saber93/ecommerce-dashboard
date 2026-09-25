@@ -5,213 +5,116 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Élan — Store admin</title>
+    <title>Élan — Commerce dashboard</title>
     <link rel="stylesheet" href="./admin.css" />
     <script defer src="./config.js"></script>
     <script defer src="./admin.js"></script>
   </head>
   <body>
-    <header>
-      <a href="./">ÉLAN <span>STORE ADMIN</span></a
-      ><button id="logout" hidden>Sign out</button>
-    </header>
-    <main>
-      <section id="login-panel" class="panel">
-        <span class="eyebrow">YOUR STORE, CONSIDERED</span>
+    <div id="auth-shell">
+      <div class="auth-brand">ÉLAN <span>COMMERCE</span></div>
+      <section id="login-panel" class="auth-card">
+        <span class="eyebrow">PRIVATE STORE WORKSPACE</span>
         <h1>Welcome back.</h1>
-        <p>Manage the collection and follow every order.</p>
+        <p>Sign in to manage your products and orders.</p>
         <form id="login">
-          <label
-            >Email<input
-              type="email"
-              name="email"
-              autocomplete="username"
-              required /></label
-          ><label
-            >Password<input
-              type="password"
-              name="password"
-              autocomplete="current-password"
-              required /></label
-          ><button>Sign in</button>
+          <label>Email<input type="email" name="email" autocomplete="username" required /></label>
+          <label>Password<input type="password" name="password" autocomplete="current-password" required /></label>
+          <button class="primary">Sign in</button>
         </form>
-        <button id="request-password" type="button">
-          Set or reset password
-        </button>
+        <button id="request-password" class="text-button" type="button">Set or reset password</button>
         <form id="set-password" hidden>
-          <label
-            >New password<input
-              type="password"
-              name="password"
-              autocomplete="new-password"
-              minlength="12"
-              required
-          /></label>
-          <label
-            >Confirm password<input
-              type="password"
-              name="confirmation"
-              autocomplete="new-password"
-              minlength="12"
-              required
-          /></label>
-          <button>Save password</button>
+          <label>New password<input type="password" name="password" autocomplete="new-password" minlength="12" required /></label>
+          <label>Confirm password<input type="password" name="confirmation" autocomplete="new-password" minlength="12" required /></label>
+          <button class="primary">Save password</button>
         </form>
       </section>
-      <p id="message" role="status" aria-live="polite"></p>
-      <section id="workspace" hidden>
-        <div class="heading">
-          <div>
-            <span class="eyebrow">DEVELOPMENT STORE · TEST PAYMENTS</span>
-            <h1>Your daily edit.</h1>
-          </div>
-          <button id="reload">Refresh</button>
+    </div>
+
+    <p id="message" class="feedback" role="status" aria-live="polite"></p>
+
+    <div id="workspace" class="app-shell" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="#overview" data-open-view="overview" aria-label="Élan commerce overview">ÉLAN <span>COMMERCE</span></a>
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="sidebar-nav" aria-label="Dashboard sections">
+          <button type="button" class="nav-item active" data-view="overview" aria-current="page"><span class="nav-icon" aria-hidden="true">◫</span>Overview</button>
+          <button type="button" class="nav-item" data-view="products"><span class="nav-icon" aria-hidden="true">▦</span>Products</button>
+          <button type="button" class="nav-item" data-view="orders"><span class="nav-icon" aria-hidden="true">▤</span>Orders</button>
+          <button type="button" class="nav-item" data-view="payments"><span class="nav-icon" aria-hidden="true">◇</span>Payments</button>
+          <button type="button" class="nav-item" data-view="settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="store-mode"><span class="mode-dot"></span><div><strong>Development store</strong><small>Test payments only</small></div></div>
+          <a id="storefront-link" class="store-link" href="https://shopping-three-kappa.vercel.app" target="_blank" rel="noopener noreferrer">View storefront <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="stats">
-          <div class="panel">
-            <small>Products</small><strong id="product-count">0</strong>
-          </div>
-          <div class="panel">
-            <small>Orders shown</small><strong id="order-count">0</strong>
-          </div>
-          <div class="panel">
-            <small>Payment review</small><strong id="review-count">0</strong>
-          </div>
-        </div>
-        <section class="panel">
-          <div class="heading">
-            <h2>The collection</h2>
-            <button id="new-product">Add product</button>
-          </div>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Stock / reserved</th>
-                  <th>Visibility</th>
-                  <th>Manage</th>
-                </tr>
-              </thead>
-              <tbody id="products"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel">
-          <h2>Recent orders</h2>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Customer</th>
-                  <th>Total</th>
-                  <th>Payment</th>
-                  <th>Fulfillment</th>
-                  <th>Manage</th>
-                </tr>
-              </thead>
-              <tbody id="orders"></tbody>
-            </table>
-          </div>
-          <p>Latest 100 orders. Live charging is disabled.</p>
-        </section>
-        <section class="panel">
-          <h2>Recover a payment</h2>
-          <p>
-            Enter a Ziina Payment Intent ID to verify its current status and
-            reconnect an interrupted checkout. The server checks its account,
-            order reference, currency and amount.
-          </p>
-          <form id="reconcile">
-            <label
-              >Payment Intent ID<input
-                name="payment_intent_id"
-                required /></label
-            ><button>Verify with Ziina</button>
-          </form>
-        </section>
-      </section>
-      <dialog id="product-dialog">
-        <form id="product-form">
-          <div class="heading">
-            <h2>Edit product</h2>
-            <button type="button" data-close="product-dialog" class="secondary">
-              Close
-            </button>
-          </div>
-          <label
-            >Product ID<input
-              name="id"
-              pattern="[a-z0-9][a-z0-9-]{0,79}"
-              required /></label
-          ><label>Name<input name="name" maxlength="160" required /></label
-          ><label
-            >Description<textarea
-              name="description"
-              maxlength="2000"
-            ></textarea>
-          </label>
-          <div class="pair">
-            <label
-              >Category<select name="category">
-                <option value="face">Everyday</option>
-                <option value="lips">Occasion</option>
-                <option value="eyes">Shoulder</option>
-              </select></label
-            ><label
-              >Price (AED)<input
-                name="price"
-                type="number"
-                min="0.01"
-                max="1000000"
-                step="0.01"
-                required
-            /></label>
-          </div>
-          <label
-            >Stock on hand<input
-              name="stock_quantity"
-              type="number"
-              min="0"
-              max="1000000"
-              step="1"
-              required /></label
-          ><label
-            >Image URL or storefront asset path<input
-              name="image"
-              required
-              placeholder="https://… or ./assets/blush.png" /></label
-          ><label
-            >Upload product image (PNG, JPG or WebP, max 5 MB)<input
-              type="file"
-              id="image-upload"
-              accept="image/png,image/jpeg,image/webp" /></label
-          ><label>Badge<input name="badge" maxlength="80" /></label
-          ><label
-            >Swatches (comma-separated hex colors)<input
-              name="swatches"
-              placeholder="#bd8d89, #dba49c" /></label
-          ><label class="check"
-            ><input type="checkbox" name="active" /> Visible in the
-            storefront</label
-          >
-          <p>
-            Products created here are development fixtures. Stock cannot be
-            reduced below reserved units.
-          </p>
-          <p id="product-message" role="status"></p>
-          <button>Save product</button>
-        </form>
-      </dialog>
-      <dialog id="order-dialog">
-        <div class="heading">
-          <h2>Order details</h2>
-          <button data-close="order-dialog">Close</button>
-        </div>
-        <div id="order-details"></div>
-      </dialog>
-    </main>
+      </aside>
+
+      <div class="app-main">
+        <header class="topbar">
+          <div class="breadcrumb">Store <span>/</span> <strong id="view-crumb">Overview</strong></div>
+          <div class="topbar-actions"><span class="environment">TEST MODE</span><button id="reload" type="button" class="quiet-button">Refresh</button><button id="logout" type="button" class="quiet-button">Sign out</button></div>
+        </header>
+
+        <main class="content">
+          <section id="view-overview" class="view" data-view-panel="overview">
+            <div class="page-heading"><div><span class="eyebrow">STORE AT A GLANCE</span><h1>Overview</h1><p>See the collection and anything that needs your attention.</p></div><button type="button" class="primary" data-open-view="products">Manage products</button></div>
+            <div id="checkout-banner" class="notice"><span class="notice-icon">i</span><div><strong>Development checkout</strong><p>Products are demo fixtures. Checkout remains unavailable until test payments and business settings are configured.</p></div></div>
+            <div class="metric-grid">
+              <div class="metric-card"><span>Products</span><strong id="product-count">0</strong><small>All catalog records</small></div>
+              <div class="metric-card"><span>Visible products</span><strong id="visible-count">0</strong><small>On the storefront</small></div>
+              <div class="metric-card"><span>Low stock</span><strong id="low-stock-count">0</strong><small>5 or fewer available</small></div>
+              <div class="metric-card"><span>Recent orders</span><strong id="order-count">0</strong><small>Latest 100 maximum</small></div>
+            </div>
+            <div class="overview-grid">
+              <section class="panel"><div class="section-heading"><div><h2>Needs attention</h2><p>Items to review before fulfilling orders.</p></div></div><div class="attention-list"><div><span>Payment reviews</span><strong id="review-count">0</strong></div><div><span>Unprocessed payment events</span><strong id="event-count">0</strong></div><div><span>Products with low stock</span><strong id="stock-alert-count">0</strong></div></div></section>
+              <section class="panel"><div class="section-heading"><div><h2>Recent orders</h2><p>New activity from the latest 100 orders.</p></div><button type="button" class="link-button" data-open-view="orders">View all</button></div><div id="recent-orders" class="recent-orders"></div></section>
+            </div>
+            <section class="panel"><div class="section-heading"><div><h2>Collection preview</h2><p>Your products as they appear in the catalog.</p></div><button type="button" class="link-button" data-open-view="products">View products</button></div><div id="featured-products" class="featured-products"></div></section>
+          </section>
+
+          <section id="view-products" class="view" data-view-panel="products" hidden>
+            <div class="page-heading"><div><span class="eyebrow">CATALOG</span><h1>Products</h1><p>Edit product details, pricing, visibility and stock.</p></div><button id="new-product" type="button" class="primary">Add product</button></div>
+            <section class="panel table-panel"><div class="section-heading"><div><h2>All products</h2><p id="product-results">0 products</p></div></div><div class="toolbar"><label class="search-field"><span class="sr-only">Search products</span><input id="product-search" type="search" placeholder="Search products" /></label><label class="filter-field"><span class="sr-only">Filter products</span><select id="product-filter"><option value="all">All products</option><option value="visible">Visible</option><option value="hidden">Hidden</option><option value="low">Low stock</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Product</th><th>Price</th><th>Available / reserved</th><th>Visibility</th><th>Action</th></tr></thead><tbody id="products"></tbody></table></div><p id="products-empty" class="empty-state" hidden>No products match this view.</p></section>
+          </section>
+
+          <section id="view-orders" class="view" data-view-panel="orders" hidden>
+            <div class="page-heading"><div><span class="eyebrow">CUSTOMER ACTIVITY</span><h1>Orders</h1><p>Review payment state and fulfillment for the latest 100 orders.</p></div></div>
+            <section class="panel table-panel"><div class="section-heading"><div><h2>Recent orders</h2><p id="order-results">0 orders</p></div></div><div class="toolbar"><label class="search-field"><span class="sr-only">Search orders</span><input id="order-search" type="search" placeholder="Search order or customer" /></label><label class="filter-field"><span class="sr-only">Filter orders</span><select id="order-filter"><option value="all">All statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="review">Review</option><option value="failed">Failed</option><option value="canceled">Canceled</option><option value="expired">Expired</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Fulfillment</th><th>Action</th></tr></thead><tbody id="orders"></tbody></table></div><p id="orders-empty" class="empty-state" hidden>No orders match this view. Checkout is currently disabled.</p></section>
+          </section>
+
+          <section id="view-payments" class="view" data-view-panel="payments" hidden>
+            <div class="page-heading"><div><span class="eyebrow">TEST PAYMENT OPERATIONS</span><h1>Payments</h1><p>Verify an interrupted Ziina test payment against the provider.</p></div></div>
+            <div class="payment-grid"><section class="panel"><div class="section-heading"><h2>Payment status</h2></div><div class="payment-summary"><div><span>Orders requiring review</span><strong id="payment-review-count">0</strong></div><div><span>Unprocessed webhook events</span><strong id="payment-event-count">0</strong></div></div><p class="muted-note">Live charging is disabled. A success redirect never marks an order paid; the server checks Ziina's payment state, amount and currency.</p></section><section class="panel"><h2>Recover a payment</h2><p>Enter a Ziina Payment Intent ID. The server verifies its account, order reference, currency and amount before changing an order.</p><form id="reconcile"><label>Payment Intent ID<input name="payment_intent_id" required placeholder="Enter intent ID" /></label><button class="primary">Verify with Ziina</button></form></section></div>
+          </section>
+
+          <section id="view-settings" class="view" data-view-panel="settings" hidden>
+            <div class="page-heading"><div><span class="eyebrow">STORE CONFIGURATION</span><h1>Settings</h1><p>Current development settings from the commerce database.</p></div></div>
+            <section class="panel settings-panel"><div class="section-heading"><div><h2>Commerce data</h2><p>These values are read-only here until production business rules are confirmed.</p></div></div><div class="settings-list"><div><span>Currency</span><strong id="setting-currency">AED</strong></div><div><span>Catalog mode</span><strong id="setting-fixtures">Development fixtures</strong></div><div><span>Checkout</span><strong id="setting-checkout">Disabled</strong></div><div><span>Shipping</span><strong id="setting-shipping">Not confirmed</strong></div><div><span>Tax</span><strong id="setting-tax">Not confirmed</strong></div><div><span>Delivery countries</span><strong id="setting-countries">Not confirmed</strong></div></div></section>
+            <section class="panel schema-help"><h2>Finding tables in Supabase</h2><p>The eight application tables are in the private <code>commerce</code> schema. Open the project's Table Editor and select <strong>commerce</strong> in its schema selector. The default <code>public</code> schema has no application tables. Keep commerce private; the storefront and Admin use the controlled Edge API.</p><a href="https://supabase.com/dashboard/project/ffukncssuqmwlowdrbau/editor" target="_blank" rel="noopener noreferrer">Open Supabase Table Editor ↗</a></section>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <dialog id="product-dialog">
+      <form id="product-form">
+        <div class="dialog-heading"><div><span class="eyebrow">CATALOG EDITOR</span><h2 id="product-dialog-title">Edit product</h2></div><button type="button" data-close="product-dialog" class="quiet-button">Close</button></div>
+        <label>Product ID<input name="id" pattern="[a-z0-9][a-z0-9-]{0,79}" required /></label>
+        <label>Name<input name="name" maxlength="160" required /></label>
+        <label>Description<textarea name="description" maxlength="2000"></textarea></label>
+        <div class="pair"><label>Category<select name="category"><option value="face">Everyday</option><option value="lips">Occasion</option><option value="eyes">Shoulder</option></select></label><label>Price (AED)<input name="price" type="number" min="0.01" max="1000000" step="0.01" required /></label></div>
+        <label>Stock on hand<input name="stock_quantity" type="number" min="0" max="1000000" step="1" required /></label>
+        <label>Image URL or storefront asset path<input name="image" required placeholder="https://… or ./assets/bag.png" /></label>
+        <label>Upload product image (PNG, JPG or WebP, max 5 MB)<input type="file" id="image-upload" accept="image/png,image/jpeg,image/webp" /></label>
+        <label>Badge<input name="badge" maxlength="80" /></label>
+        <label>Swatches (comma-separated hex colors)<input name="swatches" placeholder="#bd8d89, #dba49c" /></label>
+        <label class="check"><input type="checkbox" name="active" /> Visible in the storefront</label>
+        <p class="form-help">Products created here are development fixtures. Stock cannot be reduced below reserved units.</p>
+        <p id="product-message" role="status"></p>
+        <button class="primary">Save product</button>
+      </form>
+    </dialog>
+    <dialog id="order-dialog"><div class="dialog-heading"><div><span class="eyebrow">ORDER DETAILS</span><h2>Order details</h2></div><button data-close="order-dialog" class="quiet-button">Close</button></div><div id="order-details"></div></dialog>
   </body>
 </html>
