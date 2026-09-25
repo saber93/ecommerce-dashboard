@@ -116,6 +116,8 @@ tr:last-child td { border-bottom: 0; }
 .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .badge { display: inline-flex; align-items: center; min-height: 24px; padding: 4px 9px; border-radius: 20px; background: #f1efed; color: #736c67; font-size: 10px; font-weight: 750; text-transform: capitalize; white-space: nowrap; }
 .badge.visible, .badge.paid, .badge.fulfilled { background: #eaf3e9; color: #4f7752; }
+.badge.last-piece { background: #fbf0df; color: #9c6b30; }
+.badge.sold-out { background: #f8eae9; color: #a2645a; }
 .badge.pending, .badge.cod_pending, .badge.review { background: #fbf0df; color: #9c6b30; }
 .badge.failed, .badge.canceled, .badge.expired { background: #f8eae9; color: #a2645a; }
 .row-action { padding: 7px 10px; border: 1px solid #e5ded8; border-radius: 8px; color: #6d554d; background: #fff; font-size: 11px; font-weight: 650; white-space: nowrap; }
@@ -152,6 +154,7 @@ dialog::backdrop { background: #241a19a0; }
 .translation-fields { display: grid; gap: 15px; margin: 0; padding: 18px; border: 1px solid #e5ddd7; border-radius: 12px; }
 .translation-fields legend { padding-inline: 5px; font-size: 13px; font-weight: 650; }
 .translation-fields p { margin: 0; }
+.field-help { color: #8e746b; font-size: 11px; font-weight: 400; line-height: 1.45; }
 #fit-preview { display: block; width: min(100%, 360px); aspect-ratio: 1; object-fit: cover; border-radius: 12px; background: #f6f0eb; }
 #fit-preview[hidden] { display: none; }
 #product-message:empty { display: none; }

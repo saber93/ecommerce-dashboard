@@ -107,3 +107,11 @@ test('COD cancellation restores stock once; collection and fulfillment need an a
   assert.equal(saved.fulfillment, 'fulfilled')
   assert.equal((await stock(db)).stock_quantity, 19)
 })
+test('the final COD order removes a product from the public catalog; cancellation restores it', async () => {
+  await db.exec("update commerce.products set stock_quantity=1 where id='blush-duo'")
+  assert.equal((await rpc(db, 'commerce_catalog')).products.find(p => p.id === 'blush-duo').last_piece, true)
+  const order = await rpc(db, 'commerce_cod_checkout', args())
+  assert.equal((await rpc(db, 'commerce_catalog')).products.some(p => p.id === 'blush-duo'), false)
+  await rpc(db, 'commerce_admin', { p_actor: adminId, p_action: 'cod_cancel', p_data: { id: order.id } })
+  assert.equal((await rpc(db, 'commerce_catalog')).products.find(p => p.id === 'blush-duo').last_piece, true)
+})

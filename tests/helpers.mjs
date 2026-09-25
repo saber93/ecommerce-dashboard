@@ -28,6 +28,7 @@ export async function database() {
   await db.exec(await readFile(new URL('../supabase/migrations/20260925035808_editorial_catalog.sql', import.meta.url), 'utf8'))
   await db.exec(await readFile(new URL('../supabase/migrations/20260925042206_fit_visuals.sql', import.meta.url), 'utf8'))
   await db.exec(await readFile(new URL('../supabase/migrations/20260925044108_buy_two_free_delivery.sql', import.meta.url), 'utf8'))
+  await db.exec(await readFile(new URL('../supabase/migrations/20260925045044_inventory_visibility.sql', import.meta.url), 'utf8'))
   return db
 }
 export async function reset(db) {

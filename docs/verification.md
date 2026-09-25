@@ -93,3 +93,8 @@ Eight generated local images now cover the hero, editorial, and six product styl
 
 - Migration `20260925044108` added the quantity-based offer switch and order discount snapshot without touching existing orders, products, stock, or checkout gates. Hosted readback: enabled, six products, zero orders, `fixture_mode=true`, `cod_enabled=false`. Public catalog exposes `min_bags=2`.
 - Edge Function `commerce` version 10 is active. PGlite tests cover two of the same bag, two different bags, a one-bag AED 15 fee, tampered totals, disabling the offer, and preservation of a prior order. The storefront and Admin browser checks used live catalog data and mocked Admin authentication respectively. Actual owner Admin toggle and customer checkout remain unverified.
+
+## Last-piece inventory visibility (2026-09-25)
+
+- Migration `20260925045044` filters zero-available products from the public catalog and only marks real, active products with one available unit as `last_piece`. It changes no stock counts or existing orders. Hosted readback found all six existing fixture bags at 20 units and zero orders.
+- PGlite tests cover fixture exclusion from the claim, a real last piece, sold-out removal while Admin retains the record, COD order consumption and cancellation restoration, and pending online reservation/failure restoration. Local browser simulation checked Arabic last-piece rendering, one-unit cart limit, tab-focus refresh, sold-out removal and Admin inventory filters. No real sale was made.

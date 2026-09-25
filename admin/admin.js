@@ -160,6 +160,7 @@
       category: "face",
       price_minor: 0,
       stock_quantity: 0,
+      reserved_quantity: 0,
       image: "",
       badge: "",
       swatches: [],
@@ -202,6 +203,8 @@
     ])
       f.elements[name].value = p[name] ?? "";
     f.elements.id.readOnly = !!p.id;
+    f.dataset.reserved = String(p.reserved_quantity || 0);
+    f.elements.stock_quantity.min = f.dataset.reserved;
     f.elements.price.value = (p.price_minor / 100).toFixed(2);
     f.elements.swatches.value = p.swatches.join(", ");
     f.elements.gallery.value = (p.gallery || []).join("\n");
@@ -212,9 +215,22 @@
     updateFitPreview();
     for (const key of Object.keys(collectionLabels)) f.elements[`collection_${key}`].checked = (p.collections || []).includes(key);
     f.elements.active.checked = p.active;
+    updateStockPreview();
     $("product-dialog-title").textContent = p.id ? "Edit product" : "Add product";
     $("product-message").textContent = "";
     $("product-dialog").showModal();
+  }
+  function updateStockPreview() {
+    const f = $("product-form");
+    const stock = Number(f.elements.stock_quantity.value);
+    const reserved = Number(f.dataset.reserved || 0);
+    const available = stock - reserved;
+    const note = $("stock-preview");
+    if (!Number.isInteger(stock) || stock < reserved) note.textContent = `Stock cannot be below ${reserved} reserved units.`;
+    else if (available === 0) note.textContent = "No sellable units: this product will be hidden from the storefront, but remains editable here.";
+    else if (available === 1 && f.elements.active.checked && f.elements.photo_verified.checked) note.textContent = "One available unit: this real product will appear in the Last piece section.";
+    else if (available === 1) note.textContent = "One available unit. Last piece appears after the product is visible and real photos are confirmed.";
+    else note.textContent = `${available} units available after ${reserved} reserved. Orders will reduce this count automatically.`;
   }
   function updateFitPreview() {
     const preview = $("fit-preview");
@@ -250,9 +266,12 @@
   }
   let currentView = "overview";
   const available = (p) => p.stock_quantity - p.reserved_quantity;
+  const onStorefront = (p) => p.active && available(p) > 0;
+  const lastPiece = (p) => onStorefront(p) && !p.fixture && available(p) === 1;
   const badge = (value) => {
     const el = text("span", value === "cod_pending" ? "Cash due" : value);
-    el.className = `badge ${["visible", "paid", "fulfilled", "pending", "cod_pending", "review", "failed", "canceled", "expired"].includes(value) ? value : ""}`;
+    const key = value.replaceAll(" ", "-");
+    el.className = `badge ${["visible", "paid", "fulfilled", "pending", "cod_pending", "review", "failed", "canceled", "expired", "last-piece", "sold-out"].includes(key) ? key : ""}`;
     return el;
   };
   function thumbnail(product) {
@@ -291,8 +310,10 @@
     const shown = products.filter((p) => {
       if (!`${p.name} ${p.id} ${p.category}`.toLowerCase().includes(query)) return false;
       return filter === "all" ||
-        (filter === "visible" && p.active) ||
+        (filter === "visible" && onStorefront(p)) ||
         (filter === "hidden" && !p.active) ||
+        (filter === "last" && lastPiece(p)) ||
+        (filter === "soldout" && p.active && available(p) === 0) ||
         (filter === "low" && available(p) <= 5);
     });
     $("product-results").textContent = `${shown.length} of ${products.length} products`;
@@ -309,7 +330,8 @@
       const stock = text("td", `${available(p)} available · ${p.reserved_quantity} reserved`);
       if (available(p) <= 5) stock.className = "low-stock";
       const visibility = document.createElement("td");
-      visibility.append(badge(p.active ? "visible" : "hidden"));
+      visibility.append(badge(!p.active ? "hidden" : available(p) === 0 ? "sold out" : lastPiece(p) ? "last piece" : "visible"));
+      if (p.active && available(p) === 0) visibility.append(text("small", "Auto hidden from storefront"));
       if (p.fixture) visibility.append(text("small", "Illustrative image"));
       const action = document.createElement("td");
       action.className = "action-cell";
@@ -371,14 +393,14 @@
     $("orders").replaceChildren(...rows);
   }
   function renderOverview() {
-    const featured = products.filter((p) => p.active).concat(products.filter((p) => !p.active)).slice(0, 4);
+    const featured = products.filter(onStorefront).slice(0, 4);
     $("featured-products").replaceChildren(...featured.map((p) => {
       const item = document.createElement("div");
       item.className = "featured-item";
       item.append(thumbnail(p), text("strong", p.name), text("small", money(p.price_minor)));
       return item;
     }));
-    if (!featured.length) $("featured-products").append(text("p", "No products yet. Add a product to start your collection."));
+    if (!featured.length) $("featured-products").append(text("p", "No products are currently visible. Add stock and confirm visibility in Products."));
     $("recent-orders").replaceChildren(...orders.slice(0, 4).map((o) => {
       const item = document.createElement("div");
       item.className = "recent-order";
@@ -398,7 +420,7 @@
     root.replaceChildren(...Object.entries(collectionLabels).map(([key, label]) => {
       const section = document.createElement("section");
       section.className = "panel";
-      const matching = products.filter(p => p.active && (p.collections || []).includes(key));
+      const matching = products.filter(p => onStorefront(p) && (p.collections || []).includes(key));
       section.append(text("h2", label), text("p", `${matching.length} visible products`));
       const list = document.createElement("div");
       list.className = "marketing-product-list";
@@ -411,6 +433,14 @@
       section.append(list);
       return section;
     }));
+    const last = products.filter(lastPiece);
+    const section = $("marketing-last-pieces");
+    section.replaceChildren(...last.map(product => {
+      const row = document.createElement("div");
+      row.append(thumbnail(product), text("strong", product.name), text("small", "1 available · shown on storefront"));
+      return row;
+    }));
+    if (!last.length) section.append(text("p", "No real bags have exactly one available unit yet. Update stock in Products when that changes."));
   }
   async function load() {
     const data = await api("list");
@@ -423,7 +453,7 @@
     $("auth-shell").hidden = true;
     $("workspace").hidden = false;
     $("product-count").textContent = products.length;
-    $("visible-count").textContent = products.filter((p) => p.active).length;
+    $("visible-count").textContent = products.filter(onStorefront).length;
     $("low-stock-count").textContent = lowStock;
     $("order-count").textContent = orders.length;
     $("review-count").textContent = review;
@@ -431,6 +461,8 @@
     $("event-count").textContent = events;
     $("payment-event-count").textContent = events;
     $("stock-alert-count").textContent = lowStock;
+    $("last-piece-count").textContent = products.filter(lastPiece).length;
+    $("sold-out-count").textContent = products.filter((p) => p.active && available(p) === 0).length;
     $("setting-currency").textContent = settings.currency || "AED";
     $("setting-fixtures").textContent = settings.fixture_mode ? "Development fixtures" : "Production catalog";
     const codReady = Boolean(settings.cod_enabled && !settings.fixture_mode);
@@ -516,6 +548,9 @@
     }
   });
   $("new-product").addEventListener("click", () => editProduct());
+  for (const name of ["stock_quantity", "active", "photo_verified"]) {
+    $("product-form").elements[name].addEventListener(name === "stock_quantity" ? "input" : "change", updateStockPreview);
+  }
   document
     .querySelectorAll("[data-close]")
     .forEach((el) =>

@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Seven Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 10 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Eight Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 10 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -19,6 +19,7 @@ Already applied, with local filenames aligned to the migration versions returned
 5. `supabase/migrations/20260925035808_editorial_catalog.sql`
 6. `supabase/migrations/20260925042206_fit_visuals.sql`
 7. `supabase/migrations/20260925044108_buy_two_free_delivery.sql`
+8. `supabase/migrations/20260925045044_inventory_visibility.sql`
 
 CLI workflow from this repository, after authenticating:
 
@@ -127,3 +128,7 @@ Migration `20260925042206` adds a replaceable fit visual URL and verification fl
 ## 9. Buy two bags, free delivery
 
 Migration `20260925044108` enables the owner-requested offer in `commerce.settings` and snapshots `BUY_2_FREE_DELIVERY` on qualifying orders. Any two bag units in one order count, including two of the same style. The seven active UAE delivery areas retain their AED 15 baseline. COD quote and checkout compute the same discount server-side, and the test-mode online checkout uses the same rule when it has a nonzero delivery fee. The Admin Settings view can pause or resume the offer through an authenticated, audited action. Existing orders keep their original totals when the switch changes. The live catalog reports the offer as configured; `fixture_mode=true` and `cod_enabled=false` still block customer COD orders. Returns and partial-return treatment require the store policy and staff process before orders open. Edge Function version 10 is active; readback found six products and zero orders.
+
+## 10. Inventory visibility and last piece
+
+Migration `20260925045044` makes the public catalog omit active products when `stock_quantity - reserved_quantity <= 0`; it leaves those records editable in Admin. `last_piece` is true only for a real, active product with exactly one available unit. The Admin product editor already stores integer stock on hand; it now explains reservation counts, automatic sold-out hiding, and last-piece eligibility. Products and Marketing views show last pieces and sold-out products separately. COD placement reduces stock, COD cancellation restores it, and pending online payments reserve units until resolved. The storefront refreshes the catalog every minute while visible and on return to the tab, so open tabs catch these changes. The six owner-confirmed bag stocks remain 20 each; no product was marked last piece and no customer order was created. The marketing preview URL shows a labeled sample layout until a real last piece exists.

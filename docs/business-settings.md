@@ -11,7 +11,7 @@
 - Customers are intended to be in the UAE; this does not establish delivery coverage or rates.
 - The owner selected cash on delivery as the first customer order method, separate from Ziina.
 - The owner confirmed all seven UAE emirates, a flat AED 15 delivery fee, and next-day delivery as the intended service level.
-- The owner confirmed the current six bags, displayed AED prices, and 20 units of stock per bag as the intended sellable catalog values.
+- The owner confirmed the current six bags, displayed AED prices, and 20 units of stock per bag as the intended sellable catalog values. All six still have 20 on hand; none is a real last piece.
 - Customer support phone: `+971 50 507 1932`.
 - The owner requested “Buy 2 Bags, free delivery” on 2026-09-25. It is interpreted as any two bag units in one UAE order, including two of the same style; the normal AED 15 fee is waived. The Admin can pause this configured rule.
 
@@ -34,3 +34,7 @@ The previously observed “complimentary shipping over AED 250” demo banner re
 ## Production decisions still needed
 
 Real photos that accurately depict each sold bag; registered business name/licence details and business address; VAT registration status and applicable tax treatment; return/refund terms; privacy notice; customer order confirmation/digital invoice delivery; operational proof of next-day delivery; fraud/abuse controls for unpaid cash orders. Partial-return handling for an order that received free delivery must be set in the confirmed returns policy. The prior observed AED 250 free-shipping threshold remains unconfirmed and is not active. These items must be resolved before the production flags are switched.
+
+## Inventory display rule
+
+The Admin keeps stock on hand and reservations separately. Public availability is stock on hand minus reserved units. An active product with no available unit is omitted from the storefront catalog; it stays in Admin for restocking. A real product with exactly one available unit appears in the Last piece section. Generated-photo fixtures never receive a last-piece claim. COD orders reduce on-hand stock; a permitted cancellation restores it. Pending online test payments reserve units and release them only on a verified failure or cancellation. No production product stock was altered for this feature.
