@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 3 deployed on 2026-09-24. The storefront is published as a development preview on the existing Vercel `shopping` project; Admin publication and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 4 deployed. The storefront and separate Admin are published as development previews on Vercel; Admin login and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -33,7 +33,7 @@ Created `saber.elshafey@gmail.com` through Supabase Auth with no password and wi
 
 To finish owner access:
 
-1. In Supabase **Authentication → URL Configuration**, add `http://localhost:9001/` to Redirect URLs for local setup; add the exact Admin HTTPS origin when published. Preserve any existing URLs. This setting could not be inspected with the current OAuth grant.
+1. In Supabase **Authentication → URL Configuration**, add `https://ecommerce-dashboard-omega-khaki.vercel.app/` to Redirect URLs for the hosted Admin. Keep `http://localhost:9001/` if local setup is needed. Preserve any existing URLs. This setting could not be inspected or changed with the current OAuth grant.
 2. Open the local Admin, enter the owner email, and click **Set or reset password**. This user-initiated action sends the Auth recovery email.
 3. Open the email link, verify that it returns to the intended Admin origin, and set the password personally. The callback removes its token fragment from browser history before displaying the password form.
 4. Verify sign-in and Admin access. Email delivery, callback settings, password setup and authenticated hosted Admin operations remain pending. Configure Supabase Auth SMTP if its default sender cannot deliver to this address.
@@ -44,7 +44,7 @@ The media migration creates the `product-images` bucket with a 5 MB limit and PN
 
 Copy `supabase/.env.template` to an ignored file such as `supabase/.env.local` and populate secrets securely. Supabase provides its URL/service-role environment values to hosted functions; do not attempt to set reserved platform variables with the CLI. Supply the remaining application secrets through the Dashboard/CLI. Never put service keys or Ziina tokens in storefront/admin JavaScript.
 
-The deployed entry point allows `http://localhost:8000`, `http://localhost:9001`, and the exact storefront origin `https://shopping-three-kappa.vercel.app`; it defaults to storefront URL `http://localhost:8000` and test mode. Platform environment values override them. Secret-write scope is unavailable; no payment or reconciliation secrets have been set. Before enabling Ziina test payments on Vercel, configure `STOREFRONT_URL` for the HTTPS storefront origin.
+The deployed entry point allows `http://localhost:8000`, `http://localhost:9001`, and the exact Vercel origins `https://shopping-three-kappa.vercel.app` and `https://ecommerce-dashboard-omega-khaki.vercel.app`; it defaults to storefront URL `http://localhost:8000` and test mode. Platform environment values override them. Secret-write scope is unavailable; no payment or reconciliation secrets have been set. Before enabling Ziina test payments on Vercel, configure `STOREFRONT_URL` for the HTTPS storefront origin.
 
 - `ALLOWED_ORIGINS`: exact storefront/admin HTTPS origins, comma-separated, no trailing slash.
 - `STOREFRONT_URL`: storefront HTTPS origin. Redirect URLs are generated server-side from it.
@@ -89,9 +89,9 @@ Never-submitted expired reservations are released. A possibly submitted payment 
 
 ## 6. Vercel deployments
 
-**Storefront:** `/Users/me/Downloads/ecommerce` is pushed to `saber93/shopping` `main` at `a9d39eb` and deployed through the existing Vercel `evali1/shopping` project at `https://shopping-three-kappa.vercel.app`. The static site loads the hosted Supabase catalog; Edge CORS allows this origin. Checkout is disabled by the server until Ziina configuration is present. The catalog uses development fixtures and the pages request `noindex` while business details remain unconfirmed.
+**Storefront:** `/Users/me/Downloads/ecommerce` is pushed to `saber93/shopping` `main` and deployed through the existing Vercel `evali1/shopping` project at `https://shopping-three-kappa.vercel.app`. The static site loads the hosted Supabase catalog; Edge CORS allows this origin. Checkout is disabled by the server until Ziina configuration is present. The catalog uses development fixtures and the pages request `noindex` while business details remain unconfirmed.
 
-**Admin:** use this repository's root. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. Configure the exact origin in Edge CORS. Set appropriate Supabase Auth site/redirect settings for the actual admin domain.
+**Admin:** the user published the `evali1/ecommerce-dashboard` project at `https://ecommerce-dashboard-omega-khaki.vercel.app`, connected to `saber93/ecommerce-dashboard` `main`. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. The exact Admin origin passed hosted Edge CORS preflight. Add the Admin HTTPS URL to Supabase Auth Redirect URLs and complete owner password setup before login can be verified.
 
 No separate Node server, Redis service or DigitalOcean resource is required by this implementation. Existing Vercel/Supabase usage charges still apply.
 
