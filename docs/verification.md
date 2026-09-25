@@ -82,3 +82,9 @@ Eight generated local images now cover the hero, editorial, and six product styl
 - Hosted migration and Edge Function version 5 are active. Public catalog returns all six Arabic names and descriptions. Protected catalog digest stayed `9011de7898c49dc8442968b9cbcb6804`; six products and zero orders remain.
 - Tests cover optional-field validation, omission preserving existing translations, private table/RPC access and Arabic order snapshots. All 38 backend tests pass.
 - Admin browser check loaded and submitted Arabic fields with an intercepted API response, including zero stock. An authenticated hosted save is still unverified.
+
+## Fit visual update (2026-09-25)
+
+- Migration `20260925042206` added fit visual URLs and evidence-gated verification. Six generated illustration paths were assigned only to existing fixture products. Product prices, stock, orders and checkout flags were unchanged.
+- Edge Function `commerce` version 9 returns the fit fields. Hosted catalog readback found six fit visuals, zero verified claims, no exposed stock counts, and `cod_enabled=false`.
+- Disposable database tests cover a verified fit entry and rejection when its evidence is removed. The storefront’s English and Arabic cards and product dialogs render illustrative captions. Authenticated owner upload and physical fit remain to be verified with real products.

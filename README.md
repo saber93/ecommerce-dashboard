@@ -28,7 +28,7 @@ Admin preview: `http://localhost:9001`. The public project key is configured in 
 
 ## Deployment
 
-Follow [deployment instructions](docs/deployment.md). Five additive migrations, the six existing products, seven confirmed UAE delivery areas and Edge Function `commerce` version 7 are deployed to the existing cloud project. The storefront and separate Admin are deployed as development previews on Vercel. The owner reports adding the Admin Auth redirect URL; a read-only database check confirmed the requested administrator's verified email, password hash and private membership. Browser sign-in and authenticated Admin operations remain unverified. Cash on delivery remains closed while real photos and business details are missing. No real Ziina payment has been performed.
+Follow [deployment instructions](docs/deployment.md). Six additive migrations, the six existing products, seven confirmed UAE delivery areas and Edge Function `commerce` version 9 are deployed to the existing cloud project. The storefront and separate Admin are deployed as development previews on Vercel. The owner reports adding the Admin Auth redirect URL; a read-only database check confirmed the requested administrator's verified email, password hash and private membership. Browser sign-in and authenticated Admin operations remain unverified. Cash on delivery remains closed while real photos and business details are missing. No real Ziina payment has been performed.
 
 See [business settings](docs/business-settings.md) for the distinction between confirmed choices, fixtures and unresolved production settings. See [launch readiness](docs/launch-readiness.md) and [verification](docs/verification.md) for the remaining gates and tested behavior.
 

@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Five Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 7 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Six Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 9 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -17,6 +17,7 @@ Already applied, with local filenames aligned to the migration versions returned
 3. `supabase/migrations/20260925024641_arabic_catalog.sql`
 4. `supabase/migrations/20260925032547_cash_on_delivery.sql`
 5. `supabase/migrations/20260925035808_editorial_catalog.sql`
+6. `supabase/migrations/20260925042206_fit_visuals.sql`
 
 CLI workflow from this repository, after authenticating:
 
@@ -117,3 +118,7 @@ Applied migration `20260925032547` and confirmed delivery areas after checking t
 ## 7. Editorial catalog and marketing preview
 
 Migration `20260925035808` adds curated collections, product galleries, dimensions, fit/styling copy, pairs, limited-edition size and verified-photo flags. It assigns the six existing illustrative products to preview collections, removes unsupported fixture badges, and preserves IDs, prices, stock and orders. Edge Function version 7 validates the new fields. The Admin can upload a main image and up to eight additional photos; its Marketing view links to the bilingual storefront concept preview. Hosted readback confirmed six products, six illustrative photo flags, six curated assignments, zero unsupported fixture badges, `fixture_mode=true` and `cod_enabled=false`. The AED 15 checkout delivery rule was not changed.
+
+## 8. What fits inside visuals
+
+Migration `20260925042206` adds a replaceable fit visual URL and verification flag. It maps the six existing fixture IDs to generated storefront assets without changing product prices, stock, orders or checkout settings. The public catalog includes both fields. Edge Function version 9 validates authenticated product edits, and the Admin provides a separate fit visual upload and verification control. A verified claim requires a real product photo, an uploaded fit visual, measured dimensions, and English and Arabic contents copy. The generated visuals are unverified size concepts. Replace them and physically test actual bag capacity before promoting any claim to verified. Hosted readback confirmed six fit paths, zero verified claims, zero orders, `fixture_mode=true`, and `cod_enabled=false`.

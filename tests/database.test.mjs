@@ -54,18 +54,24 @@ test('editorial product fields drive curated collections and verified inventory 
     stock_quantity:1,active:true,image:'https://example.com/real-bag.jpg',badge:'',swatches:[],
     collections:['work','gifts'],gallery:['https://example.com/detail.jpg'],fits_inside_en:'Phone and keys',
     fits_inside_ar:'الهاتف والمفاتيح',styling_en:'For work',styling_ar:'للعمل',dimensions_cm:'24 × 18 × 8',
-    limited_edition:true,edition_size:25,photo_verified:true,pair_product_id:null})
+    limited_edition:true,edition_size:25,photo_verified:true,pair_product_id:null,
+    fit_visual_url:'https://example.com/measured-fit.jpg',fit_verified:true})
   await rpc(db,'commerce_admin',{p_actor:adminId,p_action:'product',p_data:data})
   const catalog = await rpc(db,'commerce_catalog')
   const product = catalog.products.find(p => p.id === 'real-bag')
   assert.deepEqual(product.collections,['work','gifts'])
   assert.equal(product.last_piece,true)
   assert.equal(product.fixture,false)
+  assert.equal(product.fit_verified,true)
+  assert.equal(product.fit_visual_url,'https://example.com/measured-fit.jpg')
   assert.equal(product.stock_quantity,undefined)
   const admin = await rpc(db,'commerce_admin',{p_actor:adminId,p_action:'list'})
   assert.equal(admin.products.find(p => p.id === 'real-bag').photo_verified,true)
   assert.equal(admin.settings.fixture_mode,true)
   await assert.rejects(db.exec("update commerce.products set edition_size=null where id='real-bag'"),/limited_edition_size_required/)
+  await assert.rejects(db.exec("update commerce.products set fits_inside_en='' where id='real-bag'"),/fit_claim_requires_evidence/)
+  assert.throws(()=>validateProduct({...data,photo_verified:false}),/INVALID_FIT_CLAIM/)
+  assert.throws(()=>validateProduct({...data,fit_visual_url:'./assets/fit-rose.png'}),/INVALID_FIT_CLAIM/)
 })
 test('checkout uses database prices and reserves stock atomically', async () => {
   const args = checkoutArgs([{ id: 'blush-duo', quantity: 2, price_minor: 1 }])

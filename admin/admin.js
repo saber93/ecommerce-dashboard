@@ -143,8 +143,10 @@
             ? "Only paid or cash-on-delivery orders can be fulfilled."
             : result.error === "COD_COLLECTION_MISMATCH"
               ? "Cash collection can only be recorded for a matching, open cash-on-delivery order."
-              : result.error === "COD_CANCELLATION_NOT_ALLOWED"
+            : result.error === "COD_CANCELLATION_NOT_ALLOWED"
                 ? "Only an unfulfilled cash-on-delivery order can be canceled and returned to stock."
+            : result.error === "INVALID_FIT_CLAIM"
+                ? "Verify the real product photo, measure dimensions, add tested contents in English and Arabic, and upload a fit photo before confirming the fit claim."
             : "The request could not be completed. Check configuration, permissions and reserved stock.",
       );
     }
@@ -172,6 +174,8 @@
       limited_edition: false,
       edition_size: null,
       photo_verified: false,
+      fit_visual_url: "",
+      fit_verified: false,
       pair_product_id: "",
     },
   ) {
@@ -194,6 +198,7 @@
       "styling_ar",
       "dimensions_cm",
       "pair_product_id",
+      "fit_visual_url",
     ])
       f.elements[name].value = p[name] ?? "";
     f.elements.id.readOnly = !!p.id;
@@ -203,11 +208,27 @@
     f.elements.edition_size.value = p.edition_size ?? "";
     f.elements.limited_edition.checked = Boolean(p.limited_edition);
     f.elements.photo_verified.checked = Boolean(p.photo_verified);
+    f.elements.fit_verified.checked = Boolean(p.fit_verified);
+    updateFitPreview();
     for (const key of Object.keys(collectionLabels)) f.elements[`collection_${key}`].checked = (p.collections || []).includes(key);
     f.elements.active.checked = p.active;
     $("product-dialog-title").textContent = p.id ? "Edit product" : "Add product";
     $("product-message").textContent = "";
     $("product-dialog").showModal();
+  }
+  function updateFitPreview() {
+    const preview = $("fit-preview");
+    const value = $("product-form").elements.fit_visual_url.value.trim();
+    try {
+      const url = new URL(value, `${config.storefrontUrl || "https://shopping-three-kappa.vercel.app"}/`);
+      if (value && (url.protocol === "https:" || (url.protocol === "http:" && url.hostname === "localhost"))) {
+        preview.src = url.href;
+        preview.hidden = false;
+        return;
+      }
+    } catch {}
+    preview.removeAttribute("src");
+    preview.hidden = true;
   }
   async function details(id) {
     const o = await api("order", { id });
@@ -494,6 +515,7 @@
     data.collections = Object.keys(collectionLabels).filter(key => f.elements[`collection_${key}`].checked);
     for (const key of Object.keys(collectionLabels)) delete data[`collection_${key}`];
     data.photo_verified = f.elements.photo_verified.checked;
+    data.fit_verified = f.elements.fit_verified.checked;
     data.limited_edition = f.elements.limited_edition.checked;
     data.edition_size = data.limited_edition ? Number(data.edition_size) : null;
     data.pair_product_id = data.pair_product_id.trim() || null;
@@ -552,6 +574,18 @@
       $("product-message").textContent = "Photos uploaded. Save the product to apply them.";
     } catch (e) { $("product-message").textContent = e.message; }
   });
+  $("fit-upload").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    $("product-message").textContent = "Uploading what-fits visual…";
+    try {
+      $("product-form").elements.fit_visual_url.value = await uploadImage(file);
+      $("product-form").elements.fit_verified.checked = false;
+      updateFitPreview();
+      $("product-message").textContent = "Visual uploaded. Confirm measured contents before marking the fit claim verified.";
+    } catch (e) { $("product-message").textContent = e.message; }
+  });
+  $("product-form").elements.fit_visual_url.addEventListener("input", updateFitPreview);
   $("reconcile").addEventListener("submit", async (event) => {
     event.preventDefault();
     try {

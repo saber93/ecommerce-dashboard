@@ -169,16 +169,25 @@ export function validateProduct(p) {
   if (Object.hasOwn(p, 'gallery') && (!Array.isArray(p.gallery) || p.gallery.length > 8 ||
       p.gallery.some((image) => !validImage(image))))
     throw new AppError('INVALID_IMAGE')
+  if (Object.hasOwn(p, 'fit_visual_url') &&
+      (typeof p.fit_visual_url !== 'string' ||
+       (p.fit_visual_url !== '' && !validImage(p.fit_visual_url))))
+    throw new AppError('INVALID_IMAGE')
   for (const [key, max] of [['fits_inside_en',300],['fits_inside_ar',300],
     ['styling_en',400],['styling_ar',400],['dimensions_cm',100]]) {
     if (Object.hasOwn(p, key) && (typeof p[key] !== 'string' || p[key].length > max)) throw new AppError('INVALID_PRODUCT')
   }
   if ((Object.hasOwn(p, 'limited_edition') && typeof p.limited_edition !== 'boolean') ||
       (Object.hasOwn(p, 'photo_verified') && typeof p.photo_verified !== 'boolean') ||
+      (Object.hasOwn(p, 'fit_verified') && typeof p.fit_verified !== 'boolean') ||
       (p.limited_edition && (!Number.isInteger(p.edition_size) || p.edition_size < 1 || p.edition_size > 1000000)) ||
       (Object.hasOwn(p, 'limited_edition') && !p.limited_edition && p.edition_size != null) ||
       (p.pair_product_id && (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(p.pair_product_id) || p.pair_product_id === p.id)))
     throw new AppError('INVALID_PRODUCT')
+  if (p.fit_verified && (!p.photo_verified || !p.fit_visual_url ||
+      p.fit_visual_url.startsWith('./assets/') ||
+      !p.dimensions_cm?.trim() || !p.fits_inside_en?.trim() || !p.fits_inside_ar?.trim()))
+    throw new AppError('INVALID_FIT_CLAIM')
   const translations = {};
   for (const [key, max] of [['name_ar',160],['description_ar',2000],['badge_ar',80]]) {
     if (Object.hasOwn(p, key)) {
@@ -199,7 +208,8 @@ export function validateProduct(p) {
       'badge',
       'swatches',
       ...['collections','gallery','fits_inside_en','fits_inside_ar','styling_en','styling_ar',
-        'dimensions_cm','limited_edition','edition_size','photo_verified','pair_product_id'].filter((k) => Object.hasOwn(p,k)),
+        'dimensions_cm','limited_edition','edition_size','photo_verified','pair_product_id',
+        'fit_visual_url','fit_verified'].filter((k) => Object.hasOwn(p,k)),
     ].map((k) => [k, p[k]]),
   )}
 }
