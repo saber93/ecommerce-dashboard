@@ -139,7 +139,11 @@
         result.error === "ADMIN_REQUIRED"
           ? "This account has not been granted store admin access."
           : result.error === "PAID_ORDER_REQUIRED"
-            ? "Only paid orders can be fulfilled."
+            ? "Only paid or cash-on-delivery orders can be fulfilled."
+            : result.error === "COD_COLLECTION_MISMATCH"
+              ? "Cash collection can only be recorded for a matching, open cash-on-delivery order."
+              : result.error === "COD_CANCELLATION_NOT_ALLOWED"
+                ? "Only an unfulfilled cash-on-delivery order can be canceled and returned to stock."
             : "The request could not be completed. Check configuration, permissions and reserved stock.",
       );
     }
@@ -196,14 +200,14 @@
       line.className = "order-line";
       root.append(line);
     }
-    root.append(text("p", `Total: ${money(o.total_minor)} · ${o.status}`));
+    root.append(text("p", `Total: ${money(o.total_minor)} · ${o.payment_method === 'cod' ? 'cash on delivery' : 'Ziina'} · ${o.status}`));
     $("order-dialog").showModal();
   }
   let currentView = "overview";
   const available = (p) => p.stock_quantity - p.reserved_quantity;
   const badge = (value) => {
-    const el = text("span", value);
-    el.className = `badge ${["visible", "paid", "fulfilled", "pending", "review", "failed", "canceled", "expired"].includes(value) ? value : ""}`;
+    const el = text("span", value === "cod_pending" ? "Cash due" : value);
+    el.className = `badge ${["visible", "paid", "fulfilled", "pending", "cod_pending", "review", "failed", "canceled", "expired"].includes(value) ? value : ""}`;
     return el;
   };
   function thumbnail(product) {
@@ -292,11 +296,24 @@
       const action = document.createElement("td");
       action.className = "action-cell";
       action.append(button("View", () => details(o.id)));
-      if (o.status === "paid" && o.fulfillment === "unfulfilled")
+      if ((o.status === "paid" || o.status === "cod_pending") && o.fulfillment === "unfulfilled")
         action.append(button("Mark fulfilled", async () => {
           await api("fulfill", { id: o.id });
           await load();
         }));
+      if (o.payment_method === "cod" && o.status === "cod_pending") {
+        action.append(button("Record cash", async () => {
+          if (!confirm(`Confirm you received ${money(o.total_minor)} in cash for order #${o.id.slice(0, 8)}?`)) return;
+          await api("cod_collect", { id: o.id, amount_minor: o.total_minor });
+          await load();
+        }));
+        if (o.fulfillment === "unfulfilled")
+          action.append(button("Cancel order", async () => {
+            if (!confirm(`Cancel order #${o.id.slice(0, 8)} and return its items to stock?`)) return;
+            await api("cod_cancel", { id: o.id });
+            await load();
+          }));
+      }
       if (o.payment_intent_id && o.status !== "paid")
         action.append(button("Verify payment", async () => {
           await api("reconcile", { payment_intent_id: o.payment_intent_id });
@@ -325,7 +342,7 @@
       return item;
     }));
     if (!orders.length) {
-      const empty = text("p", "No orders yet. New orders will appear here after test checkout is configured.");
+      const empty = text("p", "No orders yet. Cash on delivery will appear here once customer orders open.");
       empty.className = "empty-state";
       $("recent-orders").append(empty);
     }
@@ -351,14 +368,20 @@
     $("stock-alert-count").textContent = lowStock;
     $("setting-currency").textContent = settings.currency || "AED";
     $("setting-fixtures").textContent = settings.fixture_mode ? "Development fixtures" : "Production catalog";
-    $("setting-checkout").textContent = settings.checkout_enabled ? "Enabled in database" : "Disabled";
-    $("setting-shipping").textContent = settings.shipping_minor == null ? "Not confirmed" : `${money(settings.shipping_minor)}${settings.fixture_mode ? " · development" : ""}`;
+    const codReady = Boolean(settings.cod_enabled && !settings.fixture_mode);
+    const areas = data.delivery_areas || [];
+    $("setting-checkout").textContent = codReady ? "Cash on delivery enabled" : settings.checkout_enabled ? "Ziina test enabled in database" : "Orders closed";
+    $("setting-shipping").textContent = areas.length ? `${areas.length} delivery areas · ${[...new Set(areas.map((area) => money(area.shipping_minor)))].join(', ')}` : settings.shipping_minor == null ? "Not confirmed" : `${money(settings.shipping_minor)}${settings.fixture_mode ? " · development" : ""}`;
     $("setting-tax").textContent = settings.tax_basis_points == null ? "Not confirmed" : `${(settings.tax_basis_points / 100).toFixed(2)}%${settings.fixture_mode ? " · development" : ""}`;
     $("setting-countries").textContent = settings.allowed_countries?.length ? `${settings.allowed_countries.join(", ")}${settings.fixture_mode ? " · development" : ""}` : "Not confirmed";
-    $("checkout-banner").querySelector("p").textContent = settings.checkout_enabled
-      ? "Test checkout is enabled in the database. Verify Ziina configuration and the full payment flow before accepting orders."
-      : "Products are demo fixtures. Checkout remains unavailable until test payments and business settings are configured.";
-    $("orders-empty").textContent = settings.checkout_enabled ? "No orders match this view." : "No orders match this view. Checkout is currently disabled.";
+    $("checkout-banner-title").textContent = codReady ? "Cash on delivery is open" : "Order readiness";
+    $("checkout-banner").querySelector("p").textContent = codReady
+      ? "Customer cash on delivery orders are open. Review new orders, fulfillment, cash collection and cancellations here."
+      : "Cash on delivery is prepared but remains closed until business, tax and returns settings are confirmed.";
+    $("store-mode-label").textContent = codReady ? "Store operations" : "Development store";
+    $("store-mode-note").textContent = codReady ? "Cash on delivery active" : "Orders closed";
+    $("environment-status").textContent = codReady ? "COD LIVE" : "PRELAUNCH";
+    $("orders-empty").textContent = codReady || settings.checkout_enabled ? "No orders match this view." : "No orders match this view. Checkout is currently disabled.";
     renderProducts();
     renderOrders();
     renderOverview();

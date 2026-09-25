@@ -93,13 +93,16 @@ export function validateCheckout(input) {
     !/^[A-Z]{2}$/.test(customer.country)
   )
     throw new AppError('INVALID_CUSTOMER')
+  return { customer, items: validateItems(input.items) }
+}
+export function validateItems(rawItems) {
   if (
-    !Array.isArray(input.items) ||
-    input.items.length < 1 ||
-    input.items.length > 20
+    !Array.isArray(rawItems) ||
+    rawItems.length < 1 ||
+    rawItems.length > 20
   )
     throw new AppError('INVALID_ITEMS')
-  const items = input.items
+  const items = rawItems
     .map((i) => {
       if (
         !i ||
@@ -114,7 +117,7 @@ export function validateCheckout(input) {
     .sort((a, b) => a.id.localeCompare(b.id))
   if (new Set(items.map((i) => i.id)).size !== items.length)
     throw new AppError('DUPLICATE_ITEMS')
-  return { customer, items }
+  return items
 }
 export function validateProduct(p) {
   if (

@@ -119,6 +119,31 @@ test("catalog stays readable but checkout is disabled without provider configura
   assert.equal(catalog.checkout_enabled, false);
   assert.equal(postCount, 0);
 });
+test("cash on delivery quotes and accepts a confirmed order without Ziina", async () => {
+  delete env.ZIINA_API_TOKEN;
+  const body = { ...input(), customer: { ...customer, emirate: "dubai" }, expected_total_minor: 18000 };
+  assert.equal((await call("cod-checkout", body)).body.error, "COD_NOT_CONFIGURED");
+  await db.exec("update commerce.settings set fixture_mode=false,cod_enabled=true,checkout_enabled=false,tax_basis_points=0,allowed_countries=array['AE']");
+  await db.exec("update commerce.products set fixture=false");
+  await db.exec("insert into commerce.delivery_areas(code,name_en,name_ar,shipping_minor,days_min,days_max,active) values('dubai','Dubai','دبي',1500,1,1,true)");
+  const quote = await call("cod-quote", { emirate: "dubai", items: body.items });
+  assert.equal(quote.status, 200);
+  assert.equal(quote.body.total_minor, 18000);
+  const wrong = await call("cod-checkout", { ...body, expected_total_minor: 1 });
+  assert.equal(wrong.status, 400);
+  const placed = await call("cod-checkout", body);
+  assert.equal(placed.status, 200);
+  assert.equal(placed.body.status, "cod_pending");
+  const repeat = await call("cod-checkout", body);
+  assert.equal(repeat.body.order_id, placed.body.order_id);
+  const status = await call("status", { order_id: placed.body.order_id, token: body.token });
+  assert.equal(status.body.order.total_minor, 18000);
+  assert.equal(status.body.order.payment_method, "cod");
+  assert.equal(postCount, 0);
+  assert.equal((await stock(db)).stock_quantity, 19);
+  const collection = await call("admin", { action: "cod_collect", data: { id: placed.body.order_id, amount_minor: 18000 } }, { authorization: "Bearer fixture-admin" });
+  assert.equal(collection.status, 200);
+});
 test("checkout sends server price and test=true; retries reuse intent", async () => {
   const body = input();
   const first = await call("checkout", body);

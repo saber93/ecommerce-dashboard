@@ -6,6 +6,7 @@ import {
   parseBody,
   uuid,
   validateCheckout,
+  validateItems,
   validateProduct,
   imageExtension,
 } from "./security.mjs";
@@ -31,6 +32,11 @@ const safeErrors = [
   "PAID_ORDER_REQUIRED",
   "PAYMENT_CONFLICT",
   "PAYMENT_MISMATCH",
+  "COD_NOT_CONFIGURED",
+  "COD_COLLECTION_MISMATCH",
+  "COD_CANCELLATION_NOT_ALLOWED",
+  "FULFILLMENT_NOT_ALLOWED",
+  "QUOTE_CHANGED",
 ];
 export function createHandler(env, fetcher = fetch) {
   const origins = (env.ALLOWED_ORIGINS || "")
@@ -280,6 +286,34 @@ export function createHandler(env, fetcher = fetch) {
           );
         }
       }
+      if (action === "cod-checkout") {
+        const { customer, items } = validateCheckout(body);
+        if (!Number.isInteger(body.expected_total_minor) || body.expected_total_minor < 200 || body.expected_total_minor > 100000000)
+          throw new AppError("INVALID_TOTAL");
+        const emirate = body.customer?.emirate;
+        if (typeof emirate !== "string" || !/^[a-z][a-z0-9-]{1,39}$/.test(emirate))
+          throw new AppError("DELIVERY_UNAVAILABLE");
+        customer.emirate = emirate;
+        await limit(`cod:${await sha256(customer.email)}`, 10, 600);
+        await limit("cod-global", 50, 600);
+        const order = await rpc("commerce_cod_checkout", {
+          p_key: body.request_key,
+          p_token_hash: await sha256(body.token),
+          p_request_hash: await sha256(JSON.stringify({ customer, items })),
+          p_customer: customer,
+          p_items: items,
+          p_expected_total: body.expected_total_minor,
+        });
+        return respond({ order_id: order.id, status: order.status });
+      }
+      if (action === "cod-quote") {
+        const emirate = body.emirate;
+        if (typeof emirate !== "string" || !/^[a-z][a-z0-9-]{1,39}$/.test(emirate))
+          throw new AppError("DELIVERY_UNAVAILABLE");
+        const items = validateItems(body.items);
+        await limit("cod-quote-global", 200, 60);
+        return respond(await rpc("commerce_cod_quote", { p_area: emirate, p_items: items }));
+      }
       if (action === "status") {
         if (!uuid(body.order_id) || !/^[a-f0-9]{64}$/.test(body.token || ""))
           throw new AppError("INVALID_ORDER_ACCESS");
@@ -347,8 +381,10 @@ export function createHandler(env, fetcher = fetch) {
         }
         let data = body.data || {};
         if (body.action === "product") data = validateProduct(data);
-        if (["order", "fulfill"].includes(body.action) && !uuid(data.id))
+        if (["order", "fulfill", "cod_collect", "cod_cancel"].includes(body.action) && !uuid(data.id))
           throw new AppError("INVALID_ORDER");
+        if (body.action === "cod_collect" && (!Number.isInteger(data.amount_minor) || data.amount_minor < 200))
+          throw new AppError("INVALID_AMOUNT");
         return respond(
           await rpc("commerce_admin", {
             p_actor: actor,

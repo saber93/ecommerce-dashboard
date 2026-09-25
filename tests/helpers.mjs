@@ -24,11 +24,12 @@ export async function database() {
     ),
   )
   await db.exec(await readFile(new URL('../supabase/migrations/20260925024641_arabic_catalog.sql', import.meta.url), 'utf8'))
+  await db.exec(await readFile(new URL('../supabase/migrations/20260925032547_cash_on_delivery.sql', import.meta.url), 'utf8'))
   return db
 }
 export async function reset(db) {
   await db.exec(
-    'truncate commerce.order_items,commerce.orders,commerce.payment_events,commerce.products,commerce.rate_limits,commerce.audit_log,commerce.admins;',
+    'truncate commerce.order_items,commerce.orders,commerce.payment_events,commerce.products,commerce.delivery_areas,commerce.rate_limits,commerce.audit_log,commerce.admins;',
   )
   await db.exec(
     await readFile(

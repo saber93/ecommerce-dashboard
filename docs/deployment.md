@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 5 deployed. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in, authenticated Admin operations and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Four Supabase migrations, development fixtures, seven confirmed delivery areas, Storage bucket and Edge Function version 6 deployed. Cash on delivery is implemented but disabled while product photos and business details are incomplete. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in and authenticated Admin operations remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -15,6 +15,7 @@ Already applied, with local filenames aligned to the migration versions returned
 1. `supabase/migrations/20260924063653_commerce.sql`
 2. `supabase/migrations/20260924064030_product_images.sql`
 3. `supabase/migrations/20260925024641_arabic_catalog.sql`
+4. `supabase/migrations/20260925032547_cash_on_delivery.sql`
 
 CLI workflow from this repository, after authenticating:
 
@@ -26,7 +27,7 @@ supabase db push
 
 Inspect the dry-run target before push. Never put passwords in shell arguments or tracked files. Do not expose the `commerce` schema in the Data API. The public catalog RPC is intentionally readable; all other commerce RPCs are explicitly executable only by `service_role`. Tables use RLS and deny browser access.
 
-Explicitly applied `supabase/fixtures/development.sql` to the inspected development project. Six products now exist and there are zero orders. This is temporary demo catalog/settings data. It does not run as part of `db push`.
+Explicitly applied `supabase/fixtures/development.sql` to the inspected development project. Six products now exist and there are zero orders. The owner later confirmed the bag prices and 20 units of stock per bag, while the generated images remain placeholders. This fixture does not run as part of `db push`. The separate `supabase/fixtures/confirmed_delivery_areas.sql` inserted seven AED 15, next-day UAE emirate rows without changing existing product or order data.
 
 The Supabase Table Editor defaults to `public`, which has no application tables here. Select the private `commerce` schema in its schema selector to view `admins`, `audit_log`, `order_items`, `orders`, `payment_events`, `products`, `rate_limits`, and `settings`. The hosted project was queried again on 2026-09-25: all eight tables exist, with six products, one Admin membership and no orders. Keep `commerce` out of the exposed Data API schemas; use the controlled Edge API for storefront and Admin writes.
 
@@ -92,7 +93,7 @@ Never-submitted expired reservations are released. A possibly submitted payment 
 
 ## 6. Vercel deployments
 
-**Storefront:** `/Users/me/Downloads/ecommerce` is pushed to `saber93/shopping` `main` and deployed through the existing Vercel `evali1/shopping` project at `https://shopping-three-kappa.vercel.app`. The static site loads the hosted Supabase catalog; Edge CORS allows this origin. Checkout is disabled by the server until Ziina configuration is present. The catalog uses development fixtures and the pages request `noindex` while business details remain unconfirmed.
+**Storefront:** `/Users/me/Downloads/ecommerce` is pushed to `saber93/shopping` `main` and deployed through the existing Vercel `evali1/shopping` project at `https://shopping-three-kappa.vercel.app`. The static site loads the hosted Supabase catalog; Edge CORS allows this origin. Cash on delivery and Ziina checkout are both disabled by the server until their respective readiness gates are met. The catalog still carries fixture flags and generated preview images, and pages request `noindex` while business details remain unconfirmed.
 
 **Admin:** the user published the `evali1/ecommerce-dashboard` project at `https://ecommerce-dashboard-omega-khaki.vercel.app`, connected to `saber93/ecommerce-dashboard` `main`. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. The exact Admin origin passed hosted Edge CORS preflight. The owner reports adding the exact Admin origin to Supabase Auth Redirect URLs; the live Admin recovery request uses that URL. Owner confirmation, password and membership are verified. The dashboard has Overview, Products, Orders, Payments and Settings views with data from the Admin API. Browser sign-in and authenticated Admin operations remain to be tested by the owner.
 
@@ -107,3 +108,7 @@ References: [Supabase CLI](https://supabase.com/docs/reference/cli/introduction)
 ## Arabic storefront content (2026-09-25)
 
 Applied additive Arabic product fields and order-item name snapshots, then explicitly applied the guarded `supabase/fixtures/arabic.sql` translations for six existing demo handbags. English catalog details, prices, stock and visibility have the same digest before and after migration; order count remains zero. Edge Function version 5 validates optional Arabic fields and preserves translations submitted by older Admin clients. The product editor now includes Arabic name, description and badge fields. The storefront builds English and Arabic HTML from shared templates and locale dictionaries in the storefront repository. No shipping, tax, payment or access-control settings changed.
+
+## Cash on delivery preparation (2026-09-25)
+
+Applied migration `20260925032547` and confirmed delivery areas after checking the existing project and testing the migration on disposable PGlite. Edge Function version 6 serves the gated COD quote and order endpoints. The database calculates product, AED 15 delivery and tax totals; an order requires the displayed total to match. Stock changes, duplicate requests, collection and cancellation are transactional and audited. Hosted checks found six products, seven areas, zero orders, `fixture_mode=true` and `cod_enabled=false`. The public quote endpoint rejected with `COD_NOT_CONFIGURED`. See [launch readiness](launch-readiness.md) before opening orders.

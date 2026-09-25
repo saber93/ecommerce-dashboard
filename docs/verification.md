@@ -53,6 +53,14 @@
 
 No reconciliation scheduler has been applied. Auth configuration reads and Edge secret writes returned missing-scope errors even after database/function/key access was restored. The deployed entry point therefore has explicit nonsecret allowed origins for local development, the storefront preview, and the Admin site.
 
+## Cash on delivery preparation (2026-09-25)
+
+- The additive COD migration was run first on disposable PGlite and then applied to the existing project after inspecting migration history and the six-product, zero-order state. The migration adds a disabled COD switch, seven-area table, separate COD payment method and transactional quote/order/Admin actions without changing existing product prices, stock or orders.
+- The owner confirmed the existing six bags, prices and stock quantities, all seven UAE emirates, AED 15 shipping and a next-day delivery target. The seven delivery rows were applied separately; the hosted project still has six products, zero orders, `fixture_mode=true` and `cod_enabled=false`.
+- Edge Function `commerce` version 6 is active. Its hosted catalog returns seven areas and `cod_enabled=false`; a hosted quote request returns `COD_NOT_CONFIGURED`. No customer order or cash collection has been performed.
+- PGlite and mocked Edge tests cover the closed switch, server quote and exact total, idempotency, stock deduction, rejected quote changes, Admin cancellation/restock, amount-checked collection and absence of Ziina calls. A local browser simulation covered English/Arabic quote, COD confirmation and bag clearing. These are not real customer transactions.
+- Generated product images still need accurate replacements. Registered business/licence and VAT details, return/privacy terms, order confirmation/invoice delivery, courier validation and real owner Admin operations remain unverified. See [launch readiness](launch-readiness.md).
+
 Ziina credentials/account/webhook are not configured. There has been no real Ziina API roundtrip or test payment. Source-IP header behavior on Supabase ingress is unresolved, so webhook acceptance defaults to disabled. Owner browser login, authenticated Admin operations and managed Storage upload are not verified. No UAE latency measurement has been made.
 
 PGlite uses one local connection; its competing-checkout test proves transactional rejection under serialized execution. It does not establish behavior under independent hosted sessions, network interruptions or production load. Those remain acceptance gates.

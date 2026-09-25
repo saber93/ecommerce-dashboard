@@ -45,7 +45,7 @@
           <button type="button" class="nav-item" data-view="settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
         </nav>
         <div class="sidebar-bottom">
-          <div class="store-mode"><span class="mode-dot"></span><div><strong>Development store</strong><small>Test payments only</small></div></div>
+          <div class="store-mode"><span class="mode-dot"></span><div><strong id="store-mode-label">Development store</strong><small id="store-mode-note">Orders closed</small></div></div>
           <a id="storefront-link" class="store-link" href="https://shopping-three-kappa.vercel.app" target="_blank" rel="noopener noreferrer">View storefront <span aria-hidden="true">↗</span></a>
         </div>
       </aside>
@@ -53,13 +53,13 @@
       <div class="app-main">
         <header class="topbar">
           <div class="breadcrumb">Store <span>/</span> <strong id="view-crumb">Overview</strong></div>
-          <div class="topbar-actions"><span class="environment">TEST MODE</span><button id="reload" type="button" class="quiet-button">Refresh</button><button id="logout" type="button" class="quiet-button">Sign out</button></div>
+          <div class="topbar-actions"><span class="environment" id="environment-status">PRELAUNCH</span><button id="reload" type="button" class="quiet-button">Refresh</button><button id="logout" type="button" class="quiet-button">Sign out</button></div>
         </header>
 
         <main class="content">
           <section id="view-overview" class="view" data-view-panel="overview">
             <div class="page-heading"><div><span class="eyebrow">STORE AT A GLANCE</span><h1>Overview</h1><p>See the collection and anything that needs your attention.</p></div><button type="button" class="primary" data-open-view="products">Manage products</button></div>
-            <div id="checkout-banner" class="notice"><span class="notice-icon">i</span><div><strong>Development checkout</strong><p>Products are demo fixtures. Checkout remains unavailable until test payments and business settings are configured.</p></div></div>
+            <div id="checkout-banner" class="notice"><span class="notice-icon">i</span><div><strong id="checkout-banner-title">Order readiness</strong><p>Cash on delivery is being prepared. Confirm business and return details before opening customer orders.</p></div></div>
             <div class="metric-grid">
               <div class="metric-card"><span>Products</span><strong id="product-count">0</strong><small>All catalog records</small></div>
               <div class="metric-card"><span>Visible products</span><strong id="visible-count">0</strong><small>On the storefront</small></div>
@@ -79,8 +79,8 @@
           </section>
 
           <section id="view-orders" class="view" data-view-panel="orders" hidden>
-            <div class="page-heading"><div><span class="eyebrow">CUSTOMER ACTIVITY</span><h1>Orders</h1><p>Review payment state and fulfillment for the latest 100 orders.</p></div></div>
-            <section class="panel table-panel"><div class="section-heading"><div><h2>Recent orders</h2><p id="order-results">0 orders</p></div></div><div class="toolbar"><label class="search-field"><span class="sr-only">Search orders</span><input id="order-search" type="search" placeholder="Search order or customer" /></label><label class="filter-field"><span class="sr-only">Filter orders</span><select id="order-filter"><option value="all">All statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="review">Review</option><option value="failed">Failed</option><option value="canceled">Canceled</option><option value="expired">Expired</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Fulfillment</th><th>Action</th></tr></thead><tbody id="orders"></tbody></table></div><p id="orders-empty" class="empty-state" hidden>No orders match this view. Checkout is currently disabled.</p></section>
+            <div class="page-heading"><div><span class="eyebrow">CUSTOMER ACTIVITY</span><h1>Orders</h1><p>Review cash on delivery and payment orders for the latest 100 orders.</p></div></div>
+            <section class="panel table-panel"><div class="section-heading"><div><h2>Recent orders</h2><p id="order-results">0 orders</p></div></div><div class="toolbar"><label class="search-field"><span class="sr-only">Search orders</span><input id="order-search" type="search" placeholder="Search order or customer" /></label><label class="filter-field"><span class="sr-only">Filter orders</span><select id="order-filter"><option value="all">All statuses</option><option value="cod_pending">Cash due</option><option value="pending">Payment pending</option><option value="paid">Paid</option><option value="review">Review</option><option value="failed">Failed</option><option value="canceled">Canceled</option><option value="expired">Expired</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Fulfillment</th><th>Action</th></tr></thead><tbody id="orders"></tbody></table></div><p id="orders-empty" class="empty-state" hidden>No orders match this view. Checkout is currently disabled.</p></section>
           </section>
 
           <section id="view-payments" class="view" data-view-panel="payments" hidden>
@@ -89,7 +89,7 @@
           </section>
 
           <section id="view-settings" class="view" data-view-panel="settings" hidden>
-            <div class="page-heading"><div><span class="eyebrow">STORE CONFIGURATION</span><h1>Settings</h1><p>Current development settings from the commerce database.</p></div></div>
+            <div class="page-heading"><div><span class="eyebrow">STORE CONFIGURATION</span><h1>Settings</h1><p>Current commerce settings from the database.</p></div></div>
             <section class="panel settings-panel"><div class="section-heading"><div><h2>Commerce data</h2><p>These values are read-only here until production business rules are confirmed.</p></div></div><div class="settings-list"><div><span>Currency</span><strong id="setting-currency">AED</strong></div><div><span>Catalog mode</span><strong id="setting-fixtures">Development fixtures</strong></div><div><span>Checkout</span><strong id="setting-checkout">Disabled</strong></div><div><span>Shipping</span><strong id="setting-shipping">Not confirmed</strong></div><div><span>Tax</span><strong id="setting-tax">Not confirmed</strong></div><div><span>Delivery countries</span><strong id="setting-countries">Not confirmed</strong></div></div></section>
             <section class="panel schema-help"><h2>Finding tables in Supabase</h2><p>The eight application tables are in the private <code>commerce</code> schema. Open the project's Table Editor and select <strong>commerce</strong> in its schema selector. The default <code>public</code> schema has no application tables. Keep commerce private; the storefront and Admin use the controlled Edge API.</p><a href="https://supabase.com/dashboard/project/ffukncssuqmwlowdrbau/editor" target="_blank" rel="noopener noreferrer">Open Supabase Table Editor ↗</a></section>
           </section>
