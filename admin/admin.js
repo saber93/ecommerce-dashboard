@@ -59,7 +59,7 @@
     $("request-password").disabled = true;
     try {
       const response = await fetch(
-        `${config.supabaseUrl}/auth/v1/recover?redirect_to=${encodeURIComponent(location.origin + "/")}`,
+        `${config.supabaseUrl}/auth/v1/recover?redirect_to=${encodeURIComponent(location.origin)}`,
         {
           method: "POST",
           headers: {

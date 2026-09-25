@@ -33,8 +33,8 @@ Created `saber.elshafey@gmail.com` through Supabase Auth with no password and wi
 
 To finish owner access:
 
-1. In Supabase **Authentication → URL Configuration**, add `https://ecommerce-dashboard-omega-khaki.vercel.app/` to Redirect URLs for the hosted Admin. Keep `http://localhost:9001/` if local setup is needed. Preserve any existing URLs. This setting could not be inspected or changed with the current OAuth grant.
-2. Open the local Admin, enter the owner email, and click **Set or reset password**. This user-initiated action sends the Auth recovery email.
+1. In Supabase **Authentication → URL Configuration**, add `https://ecommerce-dashboard-omega-khaki.vercel.app` to Redirect URLs for the hosted Admin. The owner reported adding this URL on 2026-09-25; the exact dashboard value could not be independently read with the current OAuth grant. Keep `http://localhost:9001` if local setup is needed, and preserve any existing URLs.
+2. Open the [hosted Admin](https://ecommerce-dashboard-omega-khaki.vercel.app), enter the owner email, and click **Set or reset password**. This user-initiated action sends the Auth recovery email.
 3. Open the email link, verify that it returns to the intended Admin origin, and set the password personally. The callback removes its token fragment from browser history before displaying the password form.
 4. Verify sign-in and Admin access. Email delivery, callback settings, password setup and authenticated hosted Admin operations remain pending. Configure Supabase Auth SMTP if its default sender cannot deliver to this address.
 
