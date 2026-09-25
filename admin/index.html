@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Élan — Store admin</title>
+    <link rel="stylesheet" href="./admin.css" />
+    <script defer src="./config.js"></script>
+    <script defer src="./admin.js"></script>
+  </head>
+  <body>
+    <header>
+      <a href="./">ÉLAN <span>STORE ADMIN</span></a
+      ><button id="logout" hidden>Sign out</button>
+    </header>
+    <main>
+      <section id="login-panel" class="panel">
+        <span class="eyebrow">YOUR STORE, CONSIDERED</span>
+        <h1>Welcome back.</h1>
+        <p>Manage the collection and follow every order.</p>
+        <form id="login">
+          <label
+            >Email<input
+              type="email"
+              name="email"
+              autocomplete="username"
+              required /></label
+          ><label
+            >Password<input
+              type="password"
+              name="password"
+              autocomplete="current-password"
+              required /></label
+          ><button>Sign in</button>
+        </form>
+        <button id="request-password" type="button">
+          Set or reset password
+        </button>
+        <form id="set-password" hidden>
+          <label
+            >New password<input
+              type="password"
+              name="password"
+              autocomplete="new-password"
+              minlength="12"
+              required
+          /></label>
+          <label
+            >Confirm password<input
+              type="password"
+              name="confirmation"
+              autocomplete="new-password"
+              minlength="12"
+              required
+          /></label>
+          <button>Save password</button>
+        </form>
+      </section>
+      <p id="message" role="status" aria-live="polite"></p>
+      <section id="workspace" hidden>
+        <div class="heading">
+          <div>
+            <span class="eyebrow">DEVELOPMENT STORE · TEST PAYMENTS</span>
+            <h1>Your daily edit.</h1>
+          </div>
+          <button id="reload">Refresh</button>
+        </div>
+        <div class="stats">
+          <div class="panel">
+            <small>Products</small><strong id="product-count">0</strong>
+          </div>
+          <div class="panel">
+            <small>Orders shown</small><strong id="order-count">0</strong>
+          </div>
+          <div class="panel">
+            <small>Payment review</small><strong id="review-count">0</strong>
+          </div>
+        </div>
+        <section class="panel">
+          <div class="heading">
+            <h2>The collection</h2>
+            <button id="new-product">Add product</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Stock / reserved</th>
+                  <th>Visibility</th>
+                  <th>Manage</th>
+                </tr>
+              </thead>
+              <tbody id="products"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Recent orders</h2>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Total</th>
+                  <th>Payment</th>
+                  <th>Fulfillment</th>
+                  <th>Manage</th>
+                </tr>
+              </thead>
+              <tbody id="orders"></tbody>
+            </table>
+          </div>
+          <p>Latest 100 orders. Live charging is disabled.</p>
+        </section>
+        <section class="panel">
+          <h2>Recover a payment</h2>
+          <p>
+            Enter a Ziina Payment Intent ID to verify its current status and
+            reconnect an interrupted checkout. The server checks its account,
+            order reference, currency and amount.
+          </p>
+          <form id="reconcile">
+            <label
+              >Payment Intent ID<input
+                name="payment_intent_id"
+                required /></label
+            ><button>Verify with Ziina</button>
+          </form>
+        </section>
+      </section>
+      <dialog id="product-dialog">
+        <form id="product-form">
+          <div class="heading">
+            <h2>Edit product</h2>
+            <button type="button" data-close="product-dialog" class="secondary">
+              Close
+            </button>
+          </div>
+          <label
+            >Product ID<input
+              name="id"
+              pattern="[a-z0-9][a-z0-9-]{0,79}"
+              required /></label
+          ><label>Name<input name="name" maxlength="160" required /></label
+          ><label
+            >Description<textarea
+              name="description"
+              maxlength="2000"
+            ></textarea>
+          </label>
+          <div class="pair">
+            <label
+              >Category<select name="category">
+                <option value="face">Everyday</option>
+                <option value="lips">Occasion</option>
+                <option value="eyes">Shoulder</option>
+              </select></label
+            ><label
+              >Price (AED)<input
+                name="price"
+                type="number"
+                min="0.01"
+                max="1000000"
+                step="0.01"
+                required
+            /></label>
+          </div>
+          <label
+            >Stock on hand<input
+              name="stock_quantity"
+              type="number"
+              min="0"
+              max="1000000"
+              step="1"
+              required /></label
+          ><label
+            >Image URL or storefront asset path<input
+              name="image"
+              required
+              placeholder="https://… or ./assets/blush.png" /></label
+          ><label
+            >Upload product image (PNG, JPG or WebP, max 5 MB)<input
+              type="file"
+              id="image-upload"
+              accept="image/png,image/jpeg,image/webp" /></label
+          ><label>Badge<input name="badge" maxlength="80" /></label
+          ><label
+            >Swatches (comma-separated hex colors)<input
+              name="swatches"
+              placeholder="#bd8d89, #dba49c" /></label
+          ><label class="check"
+            ><input type="checkbox" name="active" /> Visible in the
+            storefront</label
+          >
+          <p>
+            Products created here are development fixtures. Stock cannot be
+            reduced below reserved units.
+          </p>
+          <p id="product-message" role="status"></p>
+          <button>Save product</button>
+        </form>
+      </dialog>
+      <dialog id="order-dialog">
+        <div class="heading">
+          <h2>Order details</h2>
+          <button data-close="order-dialog">Close</button>
+        </div>
+        <div id="order-details"></div>
+      </dialog>
+    </main>
+  </body>
+</html>

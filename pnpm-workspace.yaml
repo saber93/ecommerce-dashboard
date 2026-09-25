@@ -1,0 +1,9 @@
+# The previous apps/backend Medusa scaffold is inactive and excluded.
+packages:
+  - "admin"
+allowBuilds:
+  '@medusajs/telemetry': false
+  '@swc/core': false
+  esbuild: false
+  msgpackr-extract: false
+  protobufjs: false

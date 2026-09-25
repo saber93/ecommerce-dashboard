@@ -1,0 +1,15 @@
+project_id = "ecommerce"
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[functions.commerce]
+verify_jwt = false
