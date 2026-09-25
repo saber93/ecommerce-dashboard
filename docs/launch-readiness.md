@@ -4,7 +4,7 @@ The storefront and Admin are deployed. Cash-on-delivery code, seven AED 15 deliv
 
 ## Confirmed by the owner
 
-- Six existing bags, their displayed AED prices, and 20 units of stock each are intended for sale.
+- Six existing bags and their displayed AED prices are intended for sale. The owner has set four bags to one unit each and left two at 20 units.
 - Cash on delivery in all seven UAE emirates, AED 15 baseline shipping per order, next-day delivery target. Any two bag units in one order waive that fee; the same style can count twice.
 - Support phone: `+971 50 507 1932`.
 
@@ -24,4 +24,4 @@ The additive COD migration was tested on PGlite before being applied to `ffukncs
 
 The two-bag offer is configured and visible as a prelaunch offer. Local tests cover one bag, two units of the same bag, two different bags, expected-total rejection, the Admin switch, and preservation of an existing order discount. No real customer order or authenticated owner toggle has been exercised.
 
-The Last piece section is visible as a labeled layout preview until a real, active product has exactly one sellable unit; then it shows live last pieces. Zero available units are omitted from the public catalog and return after restocking or an eligible order cancellation. The current six generated-photo products remain at 20 units each and are not claimed as last pieces. Open storefront tabs recheck catalog availability every minute while visible and on tab return; checkout still validates stock transactionally.
+The Last piece section shows the four active products the owner set to one available unit each. Their generated photos remain labeled illustrative. Zero available units are omitted from the public catalog and return after restocking or an eligible order cancellation. The section hides when no product has exactly one available unit. Open storefront tabs recheck catalog availability every minute while visible and on tab return; checkout still validates stock transactionally.

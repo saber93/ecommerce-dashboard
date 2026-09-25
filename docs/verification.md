@@ -96,5 +96,5 @@ Eight generated local images now cover the hero, editorial, and six product styl
 
 ## Last-piece inventory visibility (2026-09-25)
 
-- Migration `20260925045044` filters zero-available products from the public catalog and only marks real, active products with one available unit as `last_piece`. It changes no stock counts or existing orders. Hosted readback found all six existing fixture bags at 20 units and zero orders.
-- PGlite tests cover fixture exclusion from the claim, a real last piece, sold-out removal while Admin retains the record, COD order consumption and cancellation restoration, and pending online reservation/failure restoration. Local browser simulation checked Arabic last-piece rendering, one-unit cart limit, tab-focus refresh, sold-out removal and Admin inventory filters. No real sale was made.
+- Migration `20260925045044` filters zero-available products from the public catalog. Migration `20260925052521` marks active products with one available unit as `last_piece` even while their generated photos remain labeled illustrative. Neither migration changes stock counts or existing orders. Hosted readback found four owner-edited products at one unit, two at 20, and zero orders.
+- PGlite tests cover one-unit fixture inventory, verified-photo inventory, sold-out removal while Admin retains the record, COD order consumption and cancellation restoration, and pending online reservation/failure restoration. Local browser checks cover Arabic last-piece rendering, one-unit cart limits, and Admin inventory filters. No real sale was made.

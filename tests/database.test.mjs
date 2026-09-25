@@ -73,10 +73,11 @@ test('editorial product fields drive curated collections and verified inventory 
   assert.throws(()=>validateProduct({...data,photo_verified:false}),/INVALID_FIT_CLAIM/)
   assert.throws(()=>validateProduct({...data,fit_visual_url:'./assets/fit-rose.png'}),/INVALID_FIT_CLAIM/)
 })
-test('public catalog hides sold-out stock and reserves last-piece claims for real products', async () => {
+test('public catalog marks one available unit even when photos are illustrative, then hides sold-out stock', async () => {
   await db.exec("update commerce.products set stock_quantity=1 where id='blush-duo'")
   let catalog = await rpc(db, 'commerce_catalog')
-  assert.equal(catalog.products.find(p => p.id === 'blush-duo').last_piece, false)
+  assert.equal(catalog.products.find(p => p.id === 'blush-duo').last_piece, true)
+  assert.equal(catalog.products.find(p => p.id === 'blush-duo').fixture, true)
   await db.exec("update commerce.products set fixture=false where id='blush-duo'")
   catalog = await rpc(db, 'commerce_catalog')
   assert.equal(catalog.products.find(p => p.id === 'blush-duo').last_piece, true)

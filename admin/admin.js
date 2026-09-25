@@ -228,8 +228,8 @@
     const note = $("stock-preview");
     if (!Number.isInteger(stock) || stock < reserved) note.textContent = `Stock cannot be below ${reserved} reserved units.`;
     else if (available === 0) note.textContent = "No sellable units: this product will be hidden from the storefront, but remains editable here.";
-    else if (available === 1 && f.elements.active.checked && f.elements.photo_verified.checked) note.textContent = "One available unit: this real product will appear in the Last piece section.";
-    else if (available === 1) note.textContent = "One available unit. Last piece appears after the product is visible and real photos are confirmed.";
+    else if (available === 1 && f.elements.active.checked) note.textContent = "One available unit: this product will appear in the Last piece section. Illustrative photos remain labeled.";
+    else if (available === 1) note.textContent = "One available unit. Make the product visible to show it in the Last piece section.";
     else note.textContent = `${available} units available after ${reserved} reserved. Orders will reduce this count automatically.`;
   }
   function updateFitPreview() {
@@ -267,7 +267,7 @@
   let currentView = "overview";
   const available = (p) => p.stock_quantity - p.reserved_quantity;
   const onStorefront = (p) => p.active && available(p) > 0;
-  const lastPiece = (p) => onStorefront(p) && !p.fixture && available(p) === 1;
+  const lastPiece = (p) => onStorefront(p) && available(p) === 1;
   const badge = (value) => {
     const el = text("span", value === "cod_pending" ? "Cash due" : value);
     const key = value.replaceAll(" ", "-");
@@ -440,7 +440,7 @@
       row.append(thumbnail(product), text("strong", product.name), text("small", "1 available · shown on storefront"));
       return row;
     }));
-    if (!last.length) section.append(text("p", "No real bags have exactly one available unit yet. Update stock in Products when that changes."));
+    if (!last.length) section.append(text("p", "No visible bags have exactly one available unit. Update stock in Products when that changes."));
   }
   async function load() {
     const data = await api("list");
@@ -548,7 +548,7 @@
     }
   });
   $("new-product").addEventListener("click", () => editProduct());
-  for (const name of ["stock_quantity", "active", "photo_verified"]) {
+  for (const name of ["stock_quantity", "active"]) {
     $("product-form").elements[name].addEventListener(name === "stock_quantity" ? "input" : "change", updateStockPreview);
   }
   document

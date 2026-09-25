@@ -11,7 +11,7 @@
 - Customers are intended to be in the UAE; this does not establish delivery coverage or rates.
 - The owner selected cash on delivery as the first customer order method, separate from Ziina.
 - The owner confirmed all seven UAE emirates, a flat AED 15 delivery fee, and next-day delivery as the intended service level.
-- The owner confirmed the current six bags, displayed AED prices, and 20 units of stock per bag as the intended sellable catalog values. All six still have 20 on hand; none is a real last piece.
+- The owner confirmed the current six bags and displayed AED prices. On 2026-09-25, they updated four bags to one unit each; the other two remain at 20. All six product images are still illustrative.
 - Customer support phone: `+971 50 507 1932`.
 - The owner requested “Buy 2 Bags, free delivery” on 2026-09-25. It is interpreted as any two bag units in one UAE order, including two of the same style; the normal AED 15 fee is waived. The Admin can pause this configured rule.
 
@@ -20,7 +20,7 @@
 `supabase/fixtures/development.sql` is opt-in and is never run automatically by migration or deployment. It refuses to run when orders already exist. Explicitly applied to this development project on 2026-09-24.
 
 - Six generated handbag images, names and descriptions mirror the revised storefront preview. The owner says these images need replacement with real product photos before orders open.
-- The existing development fixture still holds the now owner-confirmed prices and 20 units of stock per bag. The fixture flags remain on until photos and launch details are complete.
+- The existing development fixture still holds the owner-confirmed prices. The owner later edited stock in Admin: four bags now have one unit and two have 20. The fixture flags remain on until photos and launch details are complete.
 - The original fixture shipping is zero solely for Ziina tests. Seven separately recorded delivery areas hold the confirmed AED 15 cash-on-delivery fee and next-day target.
 - Tax: zero solely for tests; this is not a tax conclusion.
 - Country: AE solely to exercise the checkout form.
@@ -37,4 +37,4 @@ Real photos that accurately depict each sold bag; registered business name/licen
 
 ## Inventory display rule
 
-The Admin keeps stock on hand and reservations separately. Public availability is stock on hand minus reserved units. An active product with no available unit is omitted from the storefront catalog; it stays in Admin for restocking. A real product with exactly one available unit appears in the Last piece section. Generated-photo fixtures never receive a last-piece claim. COD orders reduce on-hand stock; a permitted cancellation restores it. Pending online test payments reserve units and release them only on a verified failure or cancellation. No production product stock was altered for this feature.
+The Admin keeps stock on hand and reservations separately. Public availability is stock on hand minus reserved units. An active product with no available unit is omitted from the storefront catalog; it stays in Admin for restocking. An active product with exactly one available unit appears in the Last piece section, whether its photo is verified or illustrative. Illustrative photos retain their label and checkout remains gated separately. COD orders reduce on-hand stock; a permitted cancellation restores it. Pending online test payments reserve units and release them only on a verified failure or cancellation. This migration does not alter product stock or existing orders.
