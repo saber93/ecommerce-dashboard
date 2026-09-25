@@ -245,6 +245,7 @@
       root.append(line);
     }
     root.append(text("p", `Total: ${money(o.total_minor)} · ${o.payment_method === 'cod' ? 'cash on delivery' : 'Ziina'} · ${o.status}`));
+    if (o.shipping_offer_code === "BUY_2_FREE_DELIVERY") root.append(text("p", "Buy 2 bags · free delivery applied"));
     $("order-dialog").showModal();
   }
   let currentView = "overview";
@@ -438,6 +439,12 @@
     $("setting-shipping").textContent = areas.length ? `${areas.length} delivery areas · ${[...new Set(areas.map((area) => money(area.shipping_minor)))].join(', ')}` : settings.shipping_minor == null ? "Not confirmed" : `${money(settings.shipping_minor)}${settings.fixture_mode ? " · development" : ""}`;
     $("setting-tax").textContent = settings.tax_basis_points == null ? "Not confirmed" : `${(settings.tax_basis_points / 100).toFixed(2)}%${settings.fixture_mode ? " · development" : ""}`;
     $("setting-countries").textContent = settings.allowed_countries?.length ? `${settings.allowed_countries.join(", ")}${settings.fixture_mode ? " · development" : ""}` : "Not confirmed";
+    const offerEnabled = Boolean(settings.buy_two_free_delivery_enabled);
+    $("shipping-offer-form").elements.enabled.checked = offerEnabled;
+    $("marketing-offer-title").textContent = offerEnabled ? "Two-bag delivery offer configured" : "Two-bag delivery offer paused";
+    $("marketing-offer-note").textContent = offerEnabled
+      ? `Two bag units qualify for free UAE delivery in the pricing rules. ${codReady ? "The offer is available at checkout." : "Customer orders remain closed until launch requirements are complete."} Gift packaging and next-day delivery wording remain concepts.`
+      : `The two-bag delivery offer is paused. Gift packaging and next-day delivery wording remain concepts. ${codReady ? "Other checkout flows stay available." : "Customer orders remain closed."}`;
     $("checkout-banner-title").textContent = codReady ? "Cash on delivery is open" : "Order readiness";
     $("checkout-banner").querySelector("p").textContent = codReady
       ? "Customer cash on delivery orders are open. Review new orders, fulfillment, cash collection and cancellations here."
@@ -493,6 +500,21 @@
       $("message").textContent = e.message;
     }),
   );
+  $("shipping-offer-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submit = event.target.querySelector("button");
+    submit.disabled = true;
+    try {
+      const enabled = event.target.elements.enabled.checked;
+      await api("shipping_offer", { enabled });
+      await load();
+      $("shipping-offer-message").textContent = enabled ? "Offer enabled in Supabase pricing rules." : "Offer paused in Supabase pricing rules.";
+    } catch (error) {
+      $("shipping-offer-message").textContent = error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
   $("new-product").addEventListener("click", () => editProduct());
   document
     .querySelectorAll("[data-close]")

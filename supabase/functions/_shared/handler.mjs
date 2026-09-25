@@ -37,6 +37,7 @@ const safeErrors = [
   "COD_CANCELLATION_NOT_ALLOWED",
   "FULFILLMENT_NOT_ALLOWED",
   "QUOTE_CHANGED",
+  "INVALID_SHIPPING_OFFER",
 ];
 export function createHandler(env, fetcher = fetch) {
   const origins = (env.ALLOWED_ORIGINS || "")

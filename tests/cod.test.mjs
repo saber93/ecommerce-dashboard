@@ -54,6 +54,41 @@ test('COD locks server prices, shipping, stock and idempotent order totals', asy
   assert.equal(await rpc(db, 'commerce_order', { p_id: first.id, p_token_hash: 'b'.repeat(64) }), null)
 })
 
+test('two bag units waive delivery for one style or two, with an order snapshot', async () => {
+  for (const items of [
+    [{ id: 'blush-duo', quantity: 2 }],
+    [{ id: 'blush-duo', quantity: 1 }, { id: 'lip-pair', quantity: 1 }],
+  ]) {
+    const quote = await rpc(db, 'commerce_cod_quote', { p_area: 'dubai', p_items: items })
+    assert.equal(quote.shipping_minor, 0)
+    assert.equal(quote.regular_shipping_minor, 1500)
+    assert.equal(quote.shipping_offer_applied, true)
+    const input = { ...args(), p_items: items, p_expected_total: quote.total_minor }
+    await assert.rejects(rpc(db, 'commerce_cod_checkout', { ...input, p_expected_total: quote.total_minor + 1500 }), /QUOTE_CHANGED/)
+    const order = await rpc(db, 'commerce_cod_checkout', input)
+    assert.equal(order.shipping_minor, 0)
+    assert.equal(order.shipping_offer_code, 'BUY_2_FREE_DELIVERY')
+    assert.equal(order.total_minor, quote.total_minor)
+    await rpc(db, 'commerce_admin', { p_actor: adminId, p_action: 'cod_cancel', p_data: { id: order.id } })
+  }
+  assert.equal((await db.query('select count(*)::int n from commerce.orders')).rows[0].n, 2)
+})
+
+test('admin can turn the offer off; old order totals stay fixed and public guests cannot change it', async () => {
+  const items = [{ id: 'blush-duo', quantity: 2 }]
+  const quote = await rpc(db, 'commerce_cod_quote', { p_area: 'dubai', p_items: items })
+  const order = await rpc(db, 'commerce_cod_checkout', { ...args(), p_items: items, p_expected_total: quote.total_minor })
+  await assert.rejects(rpc(db, 'commerce_admin', { p_actor: crypto.randomUUID(), p_action: 'shipping_offer', p_data: { enabled: false } }), /ADMIN_REQUIRED/)
+  await assert.rejects(rpc(db, 'commerce_admin', { p_actor: adminId, p_action: 'shipping_offer', p_data: { enabled: 'false' } }), /INVALID_SHIPPING_OFFER/)
+  await rpc(db, 'commerce_admin', { p_actor: adminId, p_action: 'shipping_offer', p_data: { enabled: false } })
+  const changed = await rpc(db, 'commerce_cod_quote', { p_area: 'dubai', p_items: items })
+  assert.equal(changed.shipping_minor, 1500)
+  assert.equal(changed.shipping_offer_applied, false)
+  const saved = await rpc(db, 'commerce_order', { p_id: order.id, p_token_hash: 'a'.repeat(64) })
+  assert.equal(saved.shipping_minor, 0)
+  assert.equal(saved.shipping_offer_code, 'BUY_2_FREE_DELIVERY')
+})
+
 test('COD cancellation restores stock once; collection and fulfillment need an admin', async () => {
   const first = await rpc(db, 'commerce_cod_checkout', args())
   await assert.rejects(rpc(db, 'commerce_admin', { p_actor: crypto.randomUUID(), p_action: 'cod_cancel', p_data: { id: first.id } }), /ADMIN_REQUIRED/)

@@ -88,3 +88,8 @@ Eight generated local images now cover the hero, editorial, and six product styl
 - Migration `20260925042206` added fit visual URLs and evidence-gated verification. Six generated illustration paths were assigned only to existing fixture products. Product prices, stock, orders and checkout flags were unchanged.
 - Edge Function `commerce` version 9 returns the fit fields. Hosted catalog readback found six fit visuals, zero verified claims, no exposed stock counts, and `cod_enabled=false`.
 - Disposable database tests cover a verified fit entry and rejection when its evidence is removed. The storefront’s English and Arabic cards and product dialogs render illustrative captions. Authenticated owner upload and physical fit remain to be verified with real products.
+
+## Two-bag free-delivery offer (2026-09-25)
+
+- Migration `20260925044108` added the quantity-based offer switch and order discount snapshot without touching existing orders, products, stock, or checkout gates. Hosted readback: enabled, six products, zero orders, `fixture_mode=true`, `cod_enabled=false`. Public catalog exposes `min_bags=2`.
+- Edge Function `commerce` version 10 is active. PGlite tests cover two of the same bag, two different bags, a one-bag AED 15 fee, tampered totals, disabling the offer, and preservation of a prior order. The storefront and Admin browser checks used live catalog data and mocked Admin authentication respectively. Actual owner Admin toggle and customer checkout remain unverified.

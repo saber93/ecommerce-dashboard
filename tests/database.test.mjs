@@ -83,6 +83,17 @@ test('checkout uses database prices and reserves stock atomically', async () => 
   })
   assert.equal(order.token_hash, undefined)
 })
+test('test-mode online checkout uses the same two-bag delivery rule when shipping has a fee', async () => {
+  await db.exec('update commerce.settings set shipping_minor=1500')
+  const one = await rpc(db, 'commerce_checkout', checkoutArgs())
+  assert.equal(one.shipping_minor, 1500)
+  assert.equal(one.shipping_offer_code, null)
+  const two = await rpc(db, 'commerce_checkout', checkoutArgs([{ id: 'blush-duo', quantity: 2 }]))
+  assert.equal(two.shipping_minor, 0)
+  assert.equal(two.shipping_offer_code, 'BUY_2_FREE_DELIVERY')
+  const catalog = await rpc(db, 'commerce_catalog')
+  assert.deepEqual(catalog.buy_two_free_delivery, { enabled: true, min_bags: 2 })
+})
 test('same request is idempotent and altered replay fails', async () => {
   const args = checkoutArgs()
   const a = await rpc(db, 'commerce_checkout', args)
