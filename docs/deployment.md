@@ -1,6 +1,6 @@
 # Deploy to the existing Supabase project and Vercel
 
-Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 4 deployed. The storefront and separate Admin are published as development previews on Vercel; Admin login and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
+Status: Supabase migrations, development fixtures, Storage bucket and Edge Function version 4 deployed. The storefront and separate Admin are published as development previews on Vercel. Owner email confirmation, password setup and private Admin membership are verified; browser sign-in, authenticated Admin operations and payment verification remain pending. Do not create another project or run Medusa migrations. Do not reset the database.
 
 ## 1. Deployment access
 
@@ -35,8 +35,8 @@ To finish owner access:
 
 1. In Supabase **Authentication → URL Configuration**, add `https://ecommerce-dashboard-omega-khaki.vercel.app` to Redirect URLs for the hosted Admin. The owner reported adding this URL on 2026-09-25; the exact dashboard value could not be independently read with the current OAuth grant. Keep `http://localhost:9001` if local setup is needed, and preserve any existing URLs.
 2. Open the [hosted Admin](https://ecommerce-dashboard-omega-khaki.vercel.app), enter the owner email, and click **Set or reset password**. This user-initiated action sends the Auth recovery email.
-3. Open the email link, verify that it returns to the intended Admin origin, and set the password personally. The callback removes its token fragment from browser history before displaying the password form.
-4. Verify sign-in and Admin access. Email delivery, callback settings, password setup and authenticated hosted Admin operations remain pending. Configure Supabase Auth SMTP if its default sender cannot deliver to this address.
+3. The owner reported completing the email link and password setup on 2026-09-25. A read-only query then confirmed exactly one matching Auth user, confirmed email, a nonempty password hash and exactly one matching `commerce.admins` membership. The callback code removes its token fragment from browser history before displaying the password form. The callback destination itself was not observed independently.
+4. Verify browser sign-in and authenticated Admin operations using the owner's session. No password should be shared with the developer.
 
 The media migration creates the `product-images` bucket with a 5 MB limit and PNG/JPEG/WebP MIME types. Product images are public; uploads require the Edge endpoint to validate a Supabase Auth user and the private Admin allowlist. The code validates MIME signatures, uses random file names and disables overwrites. Bucket creation and limits are verified; actual authenticated managed Storage upload remains to be tested.
 
@@ -91,7 +91,7 @@ Never-submitted expired reservations are released. A possibly submitted payment 
 
 **Storefront:** `/Users/me/Downloads/ecommerce` is pushed to `saber93/shopping` `main` and deployed through the existing Vercel `evali1/shopping` project at `https://shopping-three-kappa.vercel.app`. The static site loads the hosted Supabase catalog; Edge CORS allows this origin. Checkout is disabled by the server until Ziina configuration is present. The catalog uses development fixtures and the pages request `noindex` while business details remain unconfirmed.
 
-**Admin:** the user published the `evali1/ecommerce-dashboard` project at `https://ecommerce-dashboard-omega-khaki.vercel.app`, connected to `saber93/ecommerce-dashboard` `main`. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. The exact Admin origin passed hosted Edge CORS preflight. Add the Admin HTTPS URL to Supabase Auth Redirect URLs and complete owner password setup before login can be verified.
+**Admin:** the user published the `evali1/ecommerce-dashboard` project at `https://ecommerce-dashboard-omega-khaki.vercel.app`, connected to `saber93/ecommerce-dashboard` `main`. `vercel.json` builds with `pnpm run build` and publishes `dist/`. The existing public key is included in `admin/public-config.json`; `PUBLIC_SUPABASE_KEY` can override it, and the build rejects secret keys. Only static assets and public configuration are deployed to the Admin. The exact Admin origin passed hosted Edge CORS preflight. The owner reports adding the exact Admin origin to Supabase Auth Redirect URLs; the live Admin recovery request uses that URL. Owner confirmation, password and membership are verified. Browser sign-in and authenticated Admin operations remain to be tested by the owner.
 
 No separate Node server, Redis service or DigitalOcean resource is required by this implementation. Existing Vercel/Supabase usage charges still apply.
 

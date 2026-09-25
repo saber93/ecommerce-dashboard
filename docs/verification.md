@@ -36,11 +36,18 @@
 - Browser checkout loaded the real cloud catalog and displayed the selected AED 165 product with the payment button disabled and configuration-pending message. No console errors observed. Admin sign-in/password setup UI renders with the real public project key.
 - One cold catalog request from the local development host took approximately 2.6 seconds. This is not a UAE benchmark or an isolated Edge-to-database measurement.
 
+## Owner access update (2026-09-25)
+
+- The owner reported adding `https://ecommerce-dashboard-omega-khaki.vercel.app` to Auth Redirect URLs and completing the password email flow. The exact Auth configuration is not independently readable with the current OAuth grant.
+- The live Admin JavaScript was verified to request that exact origin for recovery. Its deployment is Ready.
+- A read-only database query confirmed one matching `auth.users` row for `saber.elshafey@gmail.com`, a confirmed email, a nonempty password hash, and one matching `commerce.admins` membership. No password or hash was retrieved.
+- Authenticated browser sign-in and Admin API operations remain unverified; they require the owner's session.
+
 ## Not externally verified
 
 No reconciliation scheduler has been applied. Auth configuration reads and Edge secret writes returned missing-scope errors even after database/function/key access was restored. The deployed entry point therefore has explicit nonsecret allowed origins for local development, the storefront preview, and the Admin site.
 
-Ziina credentials/account/webhook are not configured. There has been no real Ziina API roundtrip or test payment. Source-IP header behavior on Supabase ingress is unresolved, so webhook acceptance defaults to disabled. Owner email confirmation/password setup/login and authenticated managed Storage upload are not verified. No UAE latency measurement has been made.
+Ziina credentials/account/webhook are not configured. There has been no real Ziina API roundtrip or test payment. Source-IP header behavior on Supabase ingress is unresolved, so webhook acceptance defaults to disabled. Owner browser login, authenticated Admin operations and managed Storage upload are not verified. No UAE latency measurement has been made.
 
 PGlite uses one local connection; its competing-checkout test proves transactional rejection under serialized execution. It does not establish behavior under independent hosted sessions, network interruptions or production load. Those remain acceptance gates.
 
